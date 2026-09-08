@@ -820,6 +820,7 @@
       <div class="card"><div id="dz-list"></div></div>
       <p class="guide">Mleko świeże wytrzymuje do 4 dni w lodówce (4°C). Zamrożone w -18/-20°C zachowuje pełną wartość przez ok. 6 miesięcy — tyle rekomenduje się dla noworodków.</p>
       <button class="add-btn ghost small" onclick="openAddSheet()">+ Dodaj porcję</button>
+      <button class="add-btn ghost small" style="margin-top:8px" onclick="exportDziennikPdf()" id="dz-pdf-btn">Pobierz dziennik jako PDF</button>
     </div>
 
     <!-- MAPA -->
@@ -979,6 +980,7 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
 <script>
   /* ---------- data ---------- */
   var entries = [
@@ -1199,6 +1201,87 @@
   function initChat(){
     appendMsg("Cześć, jestem Twoją Pielęgniarką AI. Pomagam w pytaniach o karmienie piersią i dawstwo mleka — o co chcesz zapytać?", "bot");
     renderQuickChips(aiQuickStarters);
+  }
+
+  /* ---------- eksport dziennika do PDF ---------- */
+  function exportDziennikPdf(){
+    if (!window.jspdf || !window.jspdf.jsPDF){
+      openSheet(
+        '<div class="sheet-head"><h3 class="display">PDF niedostępny</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+        '<p style="font-size:13px;line-height:1.5;color:var(--ink-muted)">Generowanie PDF wymaga połączenia z internetem. Sprawdź sieć i spróbuj ponownie.</p>'
+      );
+      return;
+    }
+    var btn = document.getElementById("dz-pdf-btn");
+    var prevText = btn ? btn.textContent : "";
+    if (btn){ btn.disabled = true; btn.textContent = "Generowanie…"; }
+
+    var doc = new window.jspdf.jsPDF({unit:"mm", format:"a4"});
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var pageHeight = doc.internal.pageSize.getHeight();
+    var marginX = 18;
+    var y = 24;
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(18);
+    doc.setTextColor(156,102,112);
+    doc.text("mDawczyni", marginX, y);
+    y += 8;
+    doc.setFontSize(13);
+    doc.setTextColor(40,32,36);
+    doc.text("Dziennik donacji pokarmu kobiecego", marginX, y);
+    y += 10;
+
+    var totalMl = entries.reduce(function(a,e){return a+e.ml;},0);
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.5);
+    doc.setTextColor(110,100,105);
+    doc.text("Dawczyni: Anna Kowalska", marginX, y); y += 5.5;
+    doc.text("Wygenerowano: " + new Date().toLocaleDateString("pl-PL"), marginX, y); y += 5.5;
+    doc.text("Łącznie oddane: " + fmtLiters(totalMl) + " (" + entries.length + " porcji)", marginX, y);
+    y += 10;
+
+    doc.setDrawColor(230,222,220);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 8;
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11);
+    doc.setTextColor(40,32,36);
+    doc.text("Data", marginX, y);
+    doc.text("Ilość", marginX + 50, y);
+    doc.text("Status / placówka", marginX + 75, y);
+    y += 4;
+    doc.setDrawColor(230,222,220);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 6;
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10);
+    var colWidth = pageWidth - marginX - 75 - marginX;
+    entries.forEach(function(e){
+      var statusTxt = e.delivered ? ("dostarczone — " + e.dest) : (e.status==="fresh" ? "świeże, zamrożone" : "oczekuje na odbiór");
+      var wrapped = doc.splitTextToSize(statusTxt, colWidth);
+      if (y + 5.5 * wrapped.length > pageHeight - 20){ doc.addPage(); y = 24; }
+      doc.setTextColor(40,32,36);
+      doc.text(e.dateLabel, marginX, y);
+      doc.text(e.ml + " ml", marginX + 50, y);
+      doc.setTextColor(110,100,105);
+      doc.text(wrapped, marginX + 75, y);
+      y += 5.5 * wrapped.length + 1.5;
+    });
+
+    y += 6;
+    if (y > pageHeight - 20){ doc.addPage(); y = 24; }
+    doc.setDrawColor(230,222,220);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 8;
+    doc.setFontSize(8.5);
+    doc.setTextColor(150,140,145);
+    doc.text("Dokument wygenerowany automatycznie w aplikacji mDawczyni. Nie stanowi oficjalnego zaświadczenia medycznego.", marginX, y);
+
+    doc.save("dziennik-donacji-mdawczyni.pdf");
+    if (btn){ btn.disabled = false; btn.textContent = prevText; }
   }
 
   /* ---------- sheets ---------- */
