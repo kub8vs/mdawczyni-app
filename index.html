@@ -745,7 +745,7 @@
     var win = document.getElementById("chat-window");
     var row = document.createElement("div");
     row.className = "msg-row " + who;
-    row.innerHTML = \'<div class="msg-col"><div class="msg-bubble">\'+html+\'</div><div class="msg-time">\'+chatTime()+\'</div></div>\';
+    row.innerHTML = '<div class="msg-col"><div class="msg-bubble">'+html+'</div><div class="msg-time">'+chatTime()+'</div></div>';
     win.appendChild(row);
     win.scrollTop = win.scrollHeight;
   }
@@ -755,7 +755,7 @@
     var row = document.createElement("div");
     row.className = "msg-row bot typing-row";
     row.id = "typing-row";
-    row.innerHTML = \'<div class="msg-col"><div class="msg-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>\';
+    row.innerHTML = '<div class="msg-col"><div class="msg-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>';
     win.appendChild(row);
     win.scrollTop = win.scrollHeight;
   }
@@ -766,7 +766,7 @@
 
   function renderQuickChips(list){
     document.getElementById("chat-quick").innerHTML = list.map(function(q){
-      return \'<div class="qchip" onclick="sendChatMessage(\\\'\'+q.replace(/\'/g,"\\\\\'")+\'\\\')">\'+q+\'</div>\';
+      return '<div class="qchip" onclick="sendChatMessage(\''+q.replace(/'/g,"\\'")+'\')">'+q+'</div>';
     }).join("");
   }
 
