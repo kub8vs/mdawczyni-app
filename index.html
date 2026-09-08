@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<title>mDawczyni</title>
+<meta name="description" content="Aplikacja dla dawczyń mleka kobiecego — rejestracja, dziennik donacji, mapa banków mleka.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+
+<!-- Uruchamianie jako samodzielna aplikacja z ekranu głównego (bez paska adresu) -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="mDawczyni">
+<meta name="theme-color" content="#FDFBF9">
+<link rel="manifest" href="/manifest.webmanifest">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ivory:#FDFBF9; --surface:#FFFFFF; --rose:#C79BA0; --rose-deep:#9C6670; --rose-tint:#FAF0EF;
+    --lav:#9891AC; --lav-tint:#F3F1FA; --gold:#AD8748; --gold-tint:#FAF2E1;
+    --sage:#79987D; --sage-tint:#EFF6EE; --ink:#372F35; --ink-muted:#93878D; --line:#EFE6E2;
+    --danger:#B15F5F; --danger-tint:#FBEDED;
+  }
+  /* jasny jest zawsze domyślny — motyw zmienia się WYŁĄCZNIE ręcznie w Ustawieniach (JS ustawia data-theme) */
+  :root[data-theme="dark"]{
+    --ivory:#1B1719; --surface:#242023; --rose:#D6A6AB; --rose-deep:#E7BEC2; --rose-tint:#3A2A2C;
+    --lav:#B7B0CC; --lav-tint:#2C2836; --gold:#D3B573; --gold-tint:#372E1E;
+    --sage:#A4C0A8; --sage-tint:#22301F; --ink:#F0E9EA; --ink-muted:#A6989D; --line:#39302F;
+    --danger:#E29B9B; --danger-tint:#3A2323;
+  }
+  /* nocny — bardzo ciemny i ciepły, bez bieli i błękitu, żeby nie męczyć oczu przy karmieniu w nocy */
+  :root[data-theme="night"]{
+    --ivory:#0F0906; --surface:#180F09; --rose:#C08655; --rose-deep:#D9A06A; --rose-tint:#241609;
+    --lav:#B08F63; --lav-tint:#231A0C; --gold:#C79352; --gold-tint:#241804;
+    --sage:#9B8F5C; --sage-tint:#1C1A0C; --ink:#D9BB94; --ink-muted:#8A7358; --line:#2A1F14;
+    --danger:#C97A5C; --danger-tint:#241209;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;background:var(--ivory);color:var(--ink);
+    font-family:"Karla",system-ui,sans-serif;
+    display:flex;align-items:flex-start;justify-content:center;padding:36px 16px 60px;
+  }
+  .display{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;text-wrap:balance;}
+  .stage{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .stage-label{font-size:12px;color:var(--ink-muted);letter-spacing:.05em;font-variant-caps:small-caps;}
+  .phone{
+    width:375px;max-width:92vw;height:790px;background:var(--surface);
+    border-radius:30px;box-shadow:0 34px 70px -26px rgba(40,20,25,.35), 0 0 0 8px rgba(0,0,0,.035);
+    overflow:hidden;position:relative;display:flex;flex-direction:column;
+  }
+  .statusbar{height:28px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:11.5px;font-weight:600;color:var(--ink);}
+  .screen{flex:1;overflow-y:auto;padding:2px 22px 16px;display:none;}
+  .screen.active{display:block;}
+  .screen::-webkit-scrollbar{display:none;}
+  .icon{width:19px;height:19px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--rose-tint);color:var(--rose-deep);
+    display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-weight:600;font-size:14px;}
+  .iconbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--ink);}
+  .iconbtn .dot{position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--rose-deep);}
+
+  .hero{position:relative;border-radius:22px;overflow:hidden;padding:22px 20px 20px;margin:10px 0 18px;
+    background:radial-gradient(120% 90% at 15% 0%, var(--rose-tint), transparent 60%),
+      radial-gradient(100% 100% at 100% 30%, var(--lav-tint), transparent 55%), var(--surface);
+    border:1px solid var(--line);}
+  .hero .eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-muted);}
+  .hero h1{font-size:25px;margin:6px 0 0;line-height:1.15;}
+  .hero .sub{font-size:12.5px;color:var(--ink-muted);margin-top:8px;max-width:26ch;}
+  .impact{display:flex;align-items:center;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
+  .impact .num{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:32px;color:var(--rose-deep);line-height:1;}
+  .impact .txt{font-size:11.5px;color:var(--ink-muted);max-width:22ch;margin-top:4px;line-height:1.4;}
+  .bottle{flex:none;display:flex;flex-direction:column;align-items:center;}
+  .bottle-cap{width:14px;height:5px;background:var(--ink-muted);border-radius:2px 2px 0 0;}
+  .bottle-neck{width:18px;height:12px;background:var(--surface);border:1.4px solid var(--line);border-bottom:none;}
+  .bottle-body{width:40px;height:82px;border:1.4px solid var(--line);border-radius:5px 5px 13px 13px;position:relative;overflow:hidden;background:var(--surface);}
+  .bottle-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--gold),var(--rose-deep));transition:height 1.1s cubic-bezier(.16,.8,.3,1);}
+
+  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-muted);margin:4px 0 12px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .section-title .more{color:var(--lav);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;}
+
+  .amount-row{display:flex;gap:8px;margin-bottom:14px;}
+  .amt{flex:1;padding:12px 0;border-radius:12px;background:var(--surface);color:var(--ink);font-weight:600;font-size:14px;
+    border:1px solid var(--line);cursor:pointer;text-align:center;}
+  .amt.selected{background:var(--rose-deep);border-color:var(--rose-deep);color:#fff;}
+  .add-btn{width:100%;padding:15px;border-radius:13px;border:1px solid var(--rose-deep);background:var(--rose-deep);color:#fff;
+    font-family:"Karla",sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.02em;cursor:pointer;}
+  .add-btn.ghost{background:transparent;color:var(--lav);border-color:var(--lav);}
+  .add-btn.small{padding:11px;font-size:13px;}
+  .add-btn:active{transform:scale(.985);}
+
+  .milestones{display:flex;flex-direction:column;margin-top:6px;}
+  .mrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .mrow:last-child{border-bottom:none;}
+  .mrow .mnum{font-family:"Cormorant Garamond",serif;font-size:19px;color:var(--gold);width:20px;flex:none;}
+  .mrow .mtext{flex:1;font-size:13.5px;}
+  .mrow .mtext .mlabel{color:var(--ink-muted);font-size:11.5px;display:block;margin-top:1px;}
+  .mrow.dim{opacity:.4;}
+
+  h2.screen-title{font-size:22px;margin:14px 0 16px;display:flex;align-items:center;justify-content:space-between;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 16px;margin-bottom:16px;}
+  .list-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+  .list-row:last-child{border-bottom:none;}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .dot.fresh{background:var(--sage);} .dot.soon{background:var(--gold);} .dot.old{background:var(--danger);}
+  .list-main{flex:1;font-size:13.5px;min-width:0;}
+  .list-main .meta{font-size:11.5px;color:var(--ink-muted);margin-top:1px;}
+  .list-amt{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:17px;}
+  .stat-strip{display:flex;justify-content:space-between;text-align:center;padding:16px 4px;}
+  .stat-strip .n{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:22px;}
+  .stat-strip .l{font-size:10.5px;color:var(--ink-muted);letter-spacing:.03em;text-transform:uppercase;margin-top:2px;}
+  .guide{font-size:11.5px;color:var(--ink-muted);margin:-4px 0 16px;line-height:1.5;}
+
+  .filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .filter{padding:7px 13px;border-radius:20px;border:1px solid var(--line);font-size:12px;color:var(--ink-muted);cursor:pointer;}
+  .filter.on{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+
+  .map-box{height:170px;border-radius:16px;position:relative;margin-bottom:16px;overflow:hidden;
+    background:linear-gradient(var(--line) 1px, transparent 1px) 0 0/24px 24px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/24px 24px, var(--lav-tint);}
+  .pin{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--rose-deep);box-shadow:0 0 0 4px var(--rose-tint);}
+  .pin.me{background:var(--lav);box-shadow:0 0 0 5px var(--lav-tint);}
+  .bank-row{padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+  .bank-row:last-child{border-bottom:none;}
+  .bank-row .name{font-size:13.5px;font-weight:600;}
+  .bank-row .meta{font-size:11.5px;color:var(--ink-muted);margin-top:2px;}
+  .source-note{font-size:10.5px;color:var(--ink-muted);margin:-6px 0 16px;font-style:italic;}
+
+  .seg{display:flex;background:var(--ivory);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:16px;}
+  .seg-btn{flex:1;text-align:center;padding:8px 0;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--ink-muted);cursor:pointer;}
+  .seg-btn.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .fact-panel{background:var(--gold-tint);border-radius:14px;padding:16px;margin-bottom:16px;}
+  .fact-panel .display{font-size:15px;line-height:1.4;color:var(--ink);}
+  .fact-panel .src{font-size:10.5px;color:var(--ink-muted);margin-top:8px;}
+  .faq-item{border-bottom:1px solid var(--line);padding:13px 0;}
+  .faq-q{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13.5px;cursor:pointer;gap:10px;}
+  .faq-a{font-size:12.5px;color:var(--ink-muted);margin-top:0;max-height:0;overflow:hidden;transition:max-height .3s ease, margin-top .3s ease;line-height:1.55;}
+  .faq-item.open .faq-a{max-height:220px;margin-top:9px;}
+  .faq-mark{font-family:"Cormorant Garamond",serif;font-size:19px;color:var(--lav);flex:none;}
+
+  .search-input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);
+    font-family:"Karla",sans-serif;font-size:13.5px;color:var(--ink);margin-bottom:14px;}
+  .search-input::placeholder{color:var(--ink-muted);}
+  .med-row{padding:12px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
+  .med-row:last-child{border-bottom:none;}
+  .med-name{font-size:13.5px;font-weight:600;}
+  .pill{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:4px 9px;border-radius:20px;flex:none;}
+  .pill.compatible{background:var(--sage-tint);color:var(--sage);}
+  .pill.caution{background:var(--gold-tint);color:var(--gold);}
+  .pill.avoid{background:var(--danger-tint);color:var(--danger);}
+  .empty-note{font-size:12.5px;color:var(--ink-muted);text-align:center;padding:20px 0;}
+
+  .profile-card{display:flex;align-items:center;gap:13px;padding:15px 4px;}
+  .profile-card .avatar{width:46px;height:46px;font-size:17px;}
+  .profile-card .pname{font-size:14.5px;font-weight:700;}
+  .profile-card .pstatus{font-size:11.5px;color:var(--sage);display:flex;align-items:center;gap:5px;margin-top:2px;}
+  .profile-card .pstatus .sdot{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+  .profile-card .plink{margin-left:auto;font-size:11.5px;color:var(--lav);cursor:pointer;text-align:right;}
+
+  .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);}
+  .settings-row:last-child{border-bottom:none;}
+  .settings-label{font-size:13.5px;}
+  .settings-label .sub{font-size:11.5px;color:var(--ink-muted);margin-top:1px;}
+  .switch{width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;cursor:pointer;flex:none;}
+  .switch.on{background:var(--sage);}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease;}
+  .switch.on::after{left:18px;}
+
+  .navbar{flex:none;display:flex;justify-content:space-around;align-items:center;padding:11px 6px 18px;border-top:1px solid var(--line);background:var(--surface);}
+  .navbtn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted);font-size:10px;letter-spacing:.02em;cursor:pointer;padding:4px 8px;font-family:"Karla",sans-serif;}
+  .navbtn.active{color:var(--rose-deep);}
+
+  /* sheet (bottom modal) */
+  .sheet-overlay{position:absolute;inset:0;background:rgba(20,14,16,.32);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:10;display:flex;align-items:flex-end;}
+  .sheet-overlay.show{opacity:1;pointer-events:auto;}
+  .sheet{background:var(--surface);width:100%;max-height:88%;border-radius:22px 22px 0 0;padding:10px 22px 26px;
+    transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.85,.3,1);overflow-y:auto;}
+  .sheet-overlay.show .sheet{transform:translateY(0);}
+  .sheet-handle{width:36px;height:4px;border-radius:3px;background:var(--line);margin:6px auto 14px;}
+  .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .sheet-head h3{font-size:19px;}
+  .sheet-close{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink-muted);cursor:pointer;font-size:14px;line-height:1;}
+  .field-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-muted);margin:14px 0 7px;font-weight:600;}
+  .field-label:first-of-type{margin-top:2px;}
+  textarea.field, input.field{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:"Karla",sans-serif;font-size:13.5px;color:var(--ink);background:var(--surface);resize:none;}
+  .kv{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--ink-muted);}
+  .progress-line{height:5px;border-radius:3px;background:var(--line);margin:12px 0 4px;overflow:hidden;}
+  .progress-line span{display:block;height:100%;background:var(--sage);}
+  .vstep{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .vstep:last-child{border-bottom:none;}
+  .vcheck{width:22px;height:22px;border-radius:50%;background:var(--sage-tint);color:var(--sage);display:flex;align-items:center;justify-content:center;flex:none;font-size:12px;}
+  .vstep.pending .vcheck{background:var(--ivory);color:var(--ink-muted);}
+  .notif-row{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);}
+  .notif-row:last-child{border-bottom:none;}
+  .notif-ic{width:34px;height:34px;border-radius:50%;background:var(--rose-tint);color:var(--rose-deep);display:flex;align-items:center;justify-content:center;flex:none;}
+  .notif-title{font-size:13px;font-weight:600;}
+  .notif-body{font-size:12px;color:var(--ink-muted);margin-top:2px;line-height:1.4;}
+  .notif-time{font-size:10.5px;color:var(--ink-muted);margin-top:4px;}
+
+  .celebrate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,14,16,.28);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:20;}
+  .celebrate.show{opacity:1;pointer-events:auto;}
+  .celebrate-card{background:var(--surface);border-radius:20px;padding:30px 26px;text-align:center;width:78%;transform:scale(.85);transition:transform .4s cubic-bezier(.2,.9,.3,1.3);position:relative;overflow:hidden;}
+  .celebrate.show .celebrate-card{transform:scale(1);}
+  .ring{position:absolute;border:1px solid var(--gold);border-radius:50%;left:50%;top:38%;width:20px;height:20px;margin:-10px 0 0 -10px;opacity:0;}
+  .celebrate.show .ring{animation:ring 1.6s ease-out infinite;}
+  .ring.r2{animation-delay:.5s !important;} .ring.r3{animation-delay:1s !important;}
+  @keyframes ring{0%{width:20px;height:20px;margin:-10px 0 0 -10px;opacity:.55;}100%{width:180px;height:180px;margin:-90px 0 0 -90px;opacity:0;}}
+  .celebrate-card .mark{font-family:"Cormorant Garamond",serif;font-size:15px;color:var(--gold);position:relative;}
+  .celebrate-card h3{font-size:21px;margin:10px 0 6px;position:relative;}
+  .celebrate-card p{font-size:12.5px;color:var(--ink-muted);margin:0;position:relative;}
+  .celebrate-close{margin-top:16px;font-size:11.5px;color:var(--lav);border:none;background:none;cursor:pointer;position:relative;text-decoration:underline;}
+  @media (prefers-reduced-motion:reduce){ .ring{animation:none !important;opacity:.3;} .celebrate-card,.sheet{transition:none;} }
+
+  /* onboarding */
+  #screen-onboarding.active{display:flex;flex-direction:column;}
+  .ob-step{display:none;flex-direction:column;flex:1;}
+  .ob-step.on{display:flex;}
+  .phone.onboarding .navbar{display:none;}
+  .ob-art{height:150px;border-radius:20px;margin:18px 0 22px;
+    background:radial-gradient(70% 70% at 30% 30%, var(--rose-tint), transparent 65%),
+      radial-gradient(70% 70% at 75% 70%, var(--lav-tint), transparent 65%), var(--gold-tint);}
+  .ob-dots{display:flex;gap:6px;justify-content:center;margin:14px 0 4px;}
+  .ob-dots span{width:6px;height:6px;border-radius:50%;background:var(--line);}
+  .ob-dots span.on{background:var(--rose-deep);width:16px;border-radius:3px;transition:width .2s;}
+  .ob-q{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .ob-spacer{flex:1;}
+  .ob-skip{text-align:center;font-size:12px;color:var(--lav);margin-top:14px;cursor:pointer;}
+  .ob-hint{font-size:12px;color:var(--ink-muted);line-height:1.5;margin:10px 0 4px;}
+  .choice-row{display:flex;flex-direction:column;gap:8px;margin:10px 0 14px;}
+  .choice{padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:13.5px;cursor:pointer;}
+  .choice.sel{border-color:var(--rose-deep);background:var(--rose-tint);font-weight:600;}
+  .consent-row{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:var(--ink);padding:9px 0;line-height:1.4;cursor:pointer;}
+  .consent-row input{margin-top:2px;width:15px;height:15px;accent-color:var(--rose-deep);flex:none;}
+  .consent-row.warn{color:var(--danger);}
+
+  /* installable full-screen on an actual phone */
+  @media (max-width:480px){
+    body{padding:0;align-items:stretch;}
+    .stage{gap:0;width:100%;}
+    .stage-label{display:none;}
+    .phone{width:100vw;max-width:100vw;height:100vh;height:100dvh;border-radius:0;box-shadow:none;}
+    .statusbar{padding-top:env(safe-area-inset-top);}
+    .navbar{padding-bottom:calc(14px + env(safe-area-inset-bottom));}
+  }
+</style>
+
+</head>
+<body>
+<div class="stage">
+  <div class="stage-label">mDawczyni</div>
+  <div class="phone onboarding" id="phone">
+    <div class="statusbar"><span>9:41</span><span>100%</span></div>
+
+    <!-- ONBOARDING -->
+    <div class="screen active" id="screen-onboarding">
+      <div class="ob-step on" data-step="1">
+        <div class="ob-art"></div>
+        <h1 class="display" style="font-size:26px;margin:0">Witaj w mDawczyni</h1>
+        <p class="sub" style="font-size:13px;color:var(--ink-muted);margin-top:10px;line-height:1.5">Aplikacja dla dawczyń pokarmu kobiecego — prowadzi Cię przez rejestrację, dziennik donacji i kontakt z bankiem mleka.</p>
+        <div class="ob-spacer"></div>
+        <button class="add-btn" onclick="obNext()">Rozpocznij rejestrację</button>
+        <div class="ob-skip" onclick="obFinish()">Mam już konto — przejdź do aplikacji</div>
+      </div>
+      <div class="ob-step" data-step="2">
+        <div class="field-label" style="margin-top:10px">Dane osobowe</div>
+        <p class="ob-hint">Tych danych potrzebuje bank mleka, żeby Cię zidentyfikować, skontaktować się i przypisać oddane porcje do Twojego profilu.</p>
+        <div class="field-label">Imię</div><input class="field" placeholder="Anna">
+        <div class="field-label">Nazwisko</div><input class="field" placeholder="Kowalska">
+        <div class="field-label">PESEL</div><input class="field" placeholder="np. 92030512345" inputmode="numeric" maxlength="11">
+        <div class="field-label">Data urodzenia</div><input class="field" type="date">
+        <div class="field-label">Adres e-mail</div><input class="field" type="email" placeholder="anna.kowalska@poczta.pl">
+        <div class="field-label">Telefon</div><input class="field" type="tel" placeholder="+48 600 000 000">
+        <div class="field-label">Adres zamieszkania</div><input class="field" placeholder="ul. Przykładowa 12, Warszawa">
+        <p class="ob-hint">Dane są przekazywane wyłącznie do banku mleka realizującego Twoją kwalifikację.</p>
+        <div class="ob-spacer"></div>
+        <button class="add-btn" onclick="obNext()">Dalej</button>
+      </div>
+
+      <div class="ob-step" data-step="3">
+        <div class="field-label" style="margin-top:10px">O Tobie i porodzie</div>
+        <p class="ob-hint">Dawczynią może zostać mama karmiąca piersią, która wytwarza więcej mleka niż potrzebuje jej dziecko.</p>
+        <div class="choice-row">
+          <div class="choice sel" data-g="porod">Poród naturalny</div>
+          <div class="choice" data-g="porod">Cesarskie cięcie</div>
+          <div class="choice" data-g="porod">Poród przedwczesny</div>
+        </div>
+        <div class="ob-q"><span>Karmię obecnie piersią własne dziecko</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-q"><span>Wytwarzam nadwyżkę mleka</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-spacer"></div>
+        <button class="add-btn" onclick="obNext()">Dalej</button>
+      </div>
+
+      <div class="ob-step" data-step="4">
+        <div class="field-label" style="margin-top:10px">Wywiad zdrowotny</div>
+        <div class="ob-q"><span>Jestem w dobrym ogólnym stanie zdrowia</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-q"><span>Nie choruję przewlekle ani zakaźnie</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-q"><span>Nie odczuwam silnego stresu wpływającego na laktację</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="field-label">Przyjmowane leki (jeśli dotyczy)</div>
+        <input class="field" placeholder="np. lewotyroksyna, brak">
+        <p class="ob-hint">Leki na tarczycę, większość antybiotyków (poza terapią paciorkowcem grupy B) i antykoncepcja hormonalna zwykle <b>nie wykluczają</b> z dawstwa — ostateczną ocenę robi bank mleka.</p>
+        <div class="ob-spacer"></div>
+        <button class="add-btn" onclick="obNext()">Dalej</button>
+      </div>
+
+      <div class="ob-step" data-step="5">
+        <div class="field-label" style="margin-top:10px">Styl życia i dieta</div>
+        <div class="ob-q"><span>Nie palę papierosów</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-q"><span>Nie spożywam alkoholu</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-q"><span>Nie zażywam substancji odurzających</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-q"><span>Piję maks. 3 kawy lub 5 herbat dziennie</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="ob-q"><span>Stosuję dietę roślinną</span><div class="switch" onclick="this.classList.toggle('on')"></div></div>
+        <p class="ob-hint">Przy diecie roślinnej bank mleka zaleci suplementację B12; wszystkim dawczyniom — kwasy omega-3 (DHA).</p>
+        <div class="ob-spacer"></div>
+        <button class="add-btn" onclick="obNext()">Dalej</button>
+      </div>
+
+      <div class="ob-step" data-step="6">
+        <div class="field-label" style="margin-top:10px">Wymagane badania krwi</div>
+        <div class="card" style="margin-bottom:4px">
+          <div class="kv"><span class="k">HIV</span><span>wymagane</span></div>
+          <div class="kv"><span class="k">WZW B (HBs)</span><span>wymagane</span></div>
+          <div class="kv"><span class="k">WZW C (HCV)</span><span>wymagane</span></div>
+          <div class="kv"><span class="k">Kiła (WR)</span><span>wymagane</span></div>
+          <div class="kv"><span class="k">CMV</span><span>wymagane</span></div>
+        </div>
+        <p class="ob-hint">Bank mleka organizuje i finansuje te badania po rejestracji — nic nie musisz robić sama.</p>
+        <label class="consent-row"><input type="checkbox" id="consent-1" checked><span>Wyrażam zgodę na wykonanie powyższych badań krwi</span></label>
+        <label class="consent-row"><input type="checkbox" id="consent-2" checked><span>Wyrażam zgodę na przetwarzanie danych zdrowotnych (RODO) w celu kwalifikacji</span></label>
+        <div class="ob-spacer"></div>
+        <button class="add-btn" onclick="obValidateConsents()">Zakończ rejestrację</button>
+      </div>
+
+      <div class="ob-dots"><span class="on" data-d="1"></span><span data-d="2"></span><span data-d="3"></span><span data-d="4"></span><span data-d="5"></span><span data-d="6"></span></div>
+    </div>
+
+    <!-- HOME -->
+    <div class="screen" id="screen-home">
+      <div class="topbar">
+        <div class="avatar">AK</div>
+        <button class="iconbtn" onclick="openNotifications()"><span class="dot"></span>
+          <svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+        </button>
+      </div>
+      <div class="hero">
+        <div class="eyebrow">mDawczyni</div>
+        <h1 class="display">Dzień dobry,<br>Anno</h1>
+        <p class="sub">Twoje mleko trafia dziś do dzieci, które najbardziej go potrzebują.</p>
+        <div class="impact">
+          <div class="bottle">
+            <div class="bottle-cap"></div>
+            <div class="bottle-neck"></div>
+            <div class="bottle-body"><div class="bottle-fill" id="bottle-fill" style="height:0%"></div></div>
+          </div>
+          <div>
+            <div class="num" id="home-impact">1,2 l</div>
+            <div class="txt" id="home-impact-ml">1200 ml oddane łącznie — więcej niż Twoja własna średnia</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Dodaj dzisiejszą porcję</div>
+      <div class="amount-row">
+        <div class="amt" data-ml="60">60 ml</div>
+        <div class="amt selected" data-ml="90">90 ml</div>
+        <div class="amt" data-ml="120">120 ml</div>
+      </div>
+      <button class="add-btn" id="quick-add-btn">Dodaj mleko</button>
+
+      <div class="section-title" style="margin-top:24px">Twoja droga <span class="more" onclick="switchTab('ustawienia')">profil ›</span></div>
+      <div class="milestones">
+        <div class="mrow"><span class="mnum">I</span><div class="mtext">Pierwsza donacja<span class="mlabel">14 dni temu</span></div></div>
+        <div class="mrow"><span class="mnum">II</span><div class="mtext">Litr mleka przekroczony<span class="mlabel">6 dni temu</span></div></div>
+        <div class="mrow dim"><span class="mnum">III</span><div class="mtext">10 donacji z rzędu<span class="mlabel">jeszcze 3 do celu</span></div></div>
+      </div>
+
+      <div class="celebrate" id="celebrate">
+        <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+        <div class="celebrate-card">
+          <div class="mark">✦</div>
+          <h3 class="display">Więcej niż zwykle</h3>
+          <p>Ta porcja jest wyższa niż Twoja dotychczasowa średnia. Dziękujemy — to naprawdę się liczy.</p>
+          <button class="celebrate-close" onclick="document.getElementById('celebrate').classList.remove('show')">Zamknij</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DZIENNIK -->
+    <div class="screen" id="screen-dziennik">
+      <h2 class="screen-title display">Dziennik</h2>
+      <div class="card"><div class="stat-strip" id="dz-stats"></div></div>
+      <div class="filters">
+        <div class="filter on" data-f="all">Wszystkie</div>
+        <div class="filter" data-f="fresh">Świeże</div>
+        <div class="filter" data-f="soon">Do odbioru</div>
+      </div>
+      <div class="card"><div id="dz-list"></div></div>
+      <p class="guide">Mleko świeże wytrzymuje do 4 dni w lodówce (4°C). Zamrożone w -18/-20°C zachowuje pełną wartość przez ok. 6 miesięcy — tyle rekomenduje się dla noworodków.</p>
+      <button class="add-btn ghost small" onclick="openAddSheet()">+ Dodaj porcję</button>
+    </div>
+
+    <!-- MAPA -->
+    <div class="screen" id="screen-mapa">
+      <h2 class="screen-title display">Najbliższe banki</h2>
+      <div class="map-box">
+        <div class="pin me" style="left:48%;top:54%"></div>
+        <div class="pin" style="left:28%;top:28%" onclick="openBankSheet(0)"></div>
+        <div class="pin" style="left:66%;top:34%" onclick="openBankSheet(1)"></div>
+        <div class="pin" style="left:58%;top:68%" onclick="openBankSheet(2)"></div>
+      </div>
+      <div class="card" id="bank-list"></div>
+      <p class="source-note">Lista placówek na podstawie rejestru Fundacji Bank Mleka Kobiecego (bankmleka.pl).</p>
+    </div>
+
+    <!-- WIEDZA -->
+    <div class="screen" id="screen-wiedza">
+      <h2 class="screen-title display">Wiedza</h2>
+      <div class="seg">
+        <div class="seg-btn on" data-seg="faq">Pytania</div>
+        <div class="seg-btn" data-seg="leki">Sprawdź lek</div>
+      </div>
+
+      <div id="seg-faq">
+        <div class="fact-panel">
+          <p class="display">Od 2019 roku dawczynie z lubelskiego Banku Mleka Kobiecego przekazały łącznie 438 litrów mleka — pomoc otrzymało ponad 1000 noworodków.</p>
+          <div class="src">Źródło: rynekzdrowia.pl, USK 1 w Lublinie</div>
+        </div>
+        <div class="card">
+          <div class="faq-item open">
+            <div class="faq-q">Biorę leki — czy mogę oddawać mleko?<span class="faq-mark">–</span></div>
+            <div class="faq-a">Sprawdź lek w zakładce „Sprawdź lek" obok — klasyfikacja oparta na e-lactancia. W razie wątpliwości skonsultujesz się bezpośrednio z bankiem mleka.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">Jak długo mogę przechowywać mleko?<span class="faq-mark">+</span></div>
+            <div class="faq-a">W lodówce (4°C) do 4 dni. W zamrażarce (-18 do -20°C) optymalnie 6 miesięcy dla noworodków, do 12 miesięcy w warunkach domowych.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">Kto może zostać dawczynią?</div>
+            <div class="faq-a">Zdrowa karmiąca mama, po wstępnych badaniach serologicznych — bank mleka prowadzi Cię przez cały proces kwalifikacji.</div>
+          </div>
+        </div>
+        <button class="add-btn ghost">Porozmawiaj z konsultantką</button>
+      </div>
+
+      <div id="seg-leki" style="display:none">
+        <input class="search-input" id="med-search" placeholder="Wpisz nazwę leku, np. paracetamol…">
+        <div class="card"><div id="med-list"></div></div>
+        <p class="guide">Dane orientacyjne, oparte na klasyfikacji e-lactancia — każdą wątpliwość potwierdź z konsultantką banku mleka.</p>
+      </div>
+    </div>
+
+    <!-- USTAWIENIA -->
+    <div class="screen" id="screen-ustawienia">
+      <h2 class="screen-title display">Profil</h2>
+      <div class="card">
+        <div class="profile-card">
+          <div class="avatar">AK</div>
+          <div>
+            <div class="pname">Anna Kowalska</div>
+            <div class="pstatus"><span class="sdot"></span>Zweryfikowana dawczyni</div>
+          </div>
+          <div class="plink" onclick="openVerificationSheet()">proces<br>weryfikacji ›</div>
+        </div>
+      </div>
+      <div class="section-title">Wygląd</div>
+      <div class="card">
+        <div class="settings-label" style="padding:13px 0 2px">Motyw</div>
+        <p class="ob-hint" style="margin-top:0">Nocny jest wygaszony i ciepły — nie męczy oczu przy karmieniu po nocach.</p>
+        <div class="seg" id="theme-seg" style="margin-bottom:14px">
+          <div class="seg-btn" data-theme-choice="light">Jasny</div>
+          <div class="seg-btn" data-theme-choice="dark">Ciemny</div>
+          <div class="seg-btn" data-theme-choice="night">Nocny</div>
+        </div>
+      </div>
+      <div class="section-title">Preferencje</div>
+      <div class="card">
+        <div class="settings-row"><div class="settings-label">Język<div class="sub">Polski</div></div><span>›</span></div>
+        <div class="settings-row"><div class="settings-label">Rozmiar tekstu<div class="sub">Większy, czytelny</div></div><span>›</span></div>
+        <div class="settings-row"><div class="settings-label">Wysoki kontrast</div><div class="switch" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-row"><div class="settings-label">Powiadomienia</div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+
+    <div class="navbar">
+      <button class="navbtn active" data-screen="home"><svg class="icon" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9h12v-9"/></svg>Główna</button>
+      <button class="navbtn" data-screen="dziennik"><svg class="icon" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Dziennik</button>
+      <button class="navbtn" data-screen="mapa"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-11.5A7 7 0 0 1 19 9.5C19 14.5 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></svg>Mapa</button>
+      <button class="navbtn" data-screen="wiedza"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3.6 10.8c.5.4.9 1 .9 1.7v.5h5.4v-.5c0-.7.4-1.3.9-1.7A6 6 0 0 0 12 3Z"/><path d="M10 19h4M10.5 21h3"/></svg>Wiedza</button>
+      <button class="navbtn" data-screen="ustawienia"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.9 2.9l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V20a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.9-2.9l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.9-2.9l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.6V4a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.9 2.9l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.6 1H20a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1Z"/></svg>Ustawienia</button>
+    </div>
+
+    <div class="sheet-overlay" id="sheet-overlay" onclick="if(event.target===this) closeSheet()">
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ---------- data ---------- */
+  var entries = [
+    {id:5, dateLabel:"Dziś, 14:20", ml:120, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:""},
+    {id:4, dateLabel:"Wczoraj, 21:05", ml:90, status:"fresh", frozen:"wczoraj", expiry:"za ok. 6 mies.", notes:""},
+    {id:3, dateLabel:"12 marca", ml:150, status:"soon", frozen:"12 marca", expiry:"za 3 tygodnie", notes:"lekki katar, bez leków"},
+    {id:2, dateLabel:"2 marca", ml:100, status:"soon", frozen:"2 marca", expiry:"za 5 dni — odbierz wkrótce", notes:""},
+    {id:1, dateLabel:"18 lutego", ml:80, status:"fresh", frozen:"18 lutego", expiry:"za ok. 5 mies.", notes:""}
+  ];
+  var nextId = 6;
+  var dzFilter = "all";
+  var selectedMl = 90;
+
+  var banks = [
+    {name:"Szpital Specjalistyczny im. Świętej Rodziny", city:"Warszawa", address:"ul. Madalińskiego 25", hours:"pon–pt 8:00–16:00", phone:"22 32 06 320", features:["pokój do karmienia","parking dla mam"]},
+    {name:"Uniwersytecki Szpital Kliniczny im. J. Mikulicza-Radeckiego", city:"Wrocław", address:"ul. Borowska 213", hours:"pon–pt 8:00–15:00", phone:"71 733 10 00", features:["parking dla mam"]},
+    {name:"Szpital Położniczo-Ginekologiczny Ujastek", city:"Kraków", address:"ul. Ujastek 3", hours:"całodobowo", phone:"12 261 11 00", features:["pokój do karmienia"]},
+    {name:"Uniwersyteckie Centrum Kliniczne", city:"Gdańsk", address:"ul. Dębinki 7", hours:"pon–pt 8:00–14:00", phone:"58 727 05 05", features:["pokój do karmienia","parking dla mam"]}
+  ];
+
+  var meds = [
+    {name:"Paracetamol (acetaminofen)", cat:"compatible", note:"Uznawany za bezpieczny w typowych dawkach — jeden z najlepiej przebadanych leków przeciwbólowych w laktacji."},
+    {name:"Ibuprofen", cat:"compatible", note:"Standardowo stosowany w laktacji, minimalne przenikanie do mleka."},
+    {name:"Amoksycylina", cat:"compatible", note:"Popularny antybiotyk uznawany za bezpieczny podczas karmienia i oddawania mleka."},
+    {name:"Pseudoefedryna", cat:"caution", note:"Może czasowo zmniejszać ilość pokarmu — rozważ przerwę w oddawaniu na czas kuracji."},
+    {name:"Metotreksat", cat:"avoid", note:"Niezgodny z laktacją — wymaga wstrzymania karmienia i oddawania mleka na czas leczenia."}
+  ];
+
+  var notifications = [
+    {title:"Mleko dotarło do szpitala", body:"Twoja porcja z 12 marca przeszła pasteryzację i trafiła na oddział neonatologii.", time:"2 godz. temu"},
+    {title:"Zbliża się termin ważności", body:"Porcja ze 2 marca (100 ml) traci ważność za 5 dni — warto ją oddać.", time:"wczoraj"},
+    {title:"Nowy kamień milowy", body:"Przekroczyłaś 1 litr oddanego mleka w tym miesiącu. Dziękujemy.", time:"6 dni temu"}
+  ];
+
+  var verificationSteps = [
+    {label:"Rejestracja w aplikacji", date:"3 lutego", done:true},
+    {label:"Ankieta zdrowotna", date:"3 lutego", done:true},
+    {label:"Badania serologiczne", date:"9 lutego", done:true},
+    {label:"Zatwierdzenie przez bank mleka", date:"14 lutego", done:true}
+  ];
+
+  /* ---------- helpers ---------- */
+  function fmtLiters(ml){ return (ml/1000).toLocaleString("pl-PL",{minimumFractionDigits:1,maximumFractionDigits:1}) + " l"; }
+
+  function personalAverage(){
+    var last = entries.slice(0,5);
+    var sum = last.reduce(function(a,e){return a+e.ml;},0);
+    return sum / last.length;
+  }
+
+  var BOTTLE_GOAL_ML = 2000; // wizualny cel — miesięczna "pełna butelka"
+  function renderHome(){
+    var totalMl = entries.reduce(function(a,e){return a+e.ml;},0);
+    document.getElementById("home-impact").textContent = fmtLiters(totalMl);
+    document.getElementById("home-impact-ml").textContent = totalMl.toLocaleString("pl-PL") + " ml oddane łącznie — więcej niż Twoja własna średnia";
+    var pct = Math.max(4, Math.min(100, Math.round(totalMl / BOTTLE_GOAL_ML * 100)));
+    requestAnimationFrame(function(){ document.getElementById("bottle-fill").style.height = pct + "%"; });
+  }
+
+  function renderDziennik(){
+    var totalMl = entries.reduce(function(a,e){return a+e.ml;},0);
+    document.getElementById("dz-stats").innerHTML =
+      '<div><div class="n">'+fmtLiters(totalMl)+'</div><div class="l">oddane</div></div>'+
+      '<div><div class="n">'+entries.length+'</div><div class="l">porcje</div></div>'+
+      '<div><div class="n">6</div><div class="l">dni z rzędu</div></div>';
+    var visible = entries.filter(function(e){ return dzFilter==="all" || e.status===dzFilter; });
+    document.getElementById("dz-list").innerHTML = visible.map(function(e,i){
+      return '<div class="list-row" onclick="openEntrySheet('+e.id+')">'+
+        '<span class="dot '+e.status+'"></span>'+
+        '<div class="list-main">'+e.dateLabel+'<div class="meta">'+
+        (e.status==="fresh" ? "zamrożone — "+e.frozen : "ważność: "+e.expiry)+'</div></div>'+
+        '<span class="list-amt">'+e.ml+' ml</span></div>';
+    }).join("") || '<div class="empty-note">Brak porcji w tej kategorii.</div>';
+  }
+
+  function renderBanks(){
+    document.getElementById("bank-list").innerHTML = banks.map(function(b,i){
+      return '<div class="bank-row" onclick="openBankSheet('+i+')"><div class="name">'+b.name+'</div><div class="meta">'+b.city+'</div></div>';
+    }).join("");
+  }
+
+  function renderMeds(term){
+    term = (term||"").toLowerCase();
+    var filtered = meds.filter(function(m){ return m.name.toLowerCase().indexOf(term) !== -1; });
+    var labels = {compatible:"Zgodny", caution:"Ostrożnie", avoid:"Unikaj"};
+    document.getElementById("med-list").innerHTML = filtered.map(function(m){
+      return '<div class="med-row"><div class="med-name">'+m.name+'</div><span class="pill '+m.cat+'">'+labels[m.cat]+'</span></div>';
+    }).join("") || '<div class="empty-note">Nie znaleziono leku — zapytaj konsultantkę.</div>';
+  }
+
+  /* ---------- sheets ---------- */
+  function openSheet(html){
+    document.getElementById("sheet").innerHTML =
+      '<div class="sheet-handle"></div>' + html;
+    document.getElementById("sheet-overlay").classList.add("show");
+  }
+  function closeSheet(){ document.getElementById("sheet-overlay").classList.remove("show"); }
+
+  function openAddSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Dodaj porcję</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<div class="amount-row" id="sheet-amounts">'+
+        '<div class="amt" data-ml="60">60 ml</div><div class="amt selected" data-ml="90">90 ml</div><div class="amt" data-ml="120">120 ml</div>'+
+      '</div>'+
+      '<div class="field-label">Inna ilość (ml)</div>'+
+      '<input class="field" id="sheet-custom-ml" placeholder="np. 145" inputmode="numeric">'+
+      '<div class="field-label">Uwagi (opcjonalnie)</div>'+
+      '<textarea class="field" rows="3" id="sheet-notes" placeholder="np. przyjmowane leki, samopoczucie"></textarea>'+
+      '<button class="add-btn" style="margin-top:18px" onclick="submitAdd()">Zapisz porcję</button>'
+    );
+    var sheetSelected = 90;
+    document.querySelectorAll("#sheet-amounts .amt").forEach(function(c){
+      c.addEventListener("click", function(){
+        document.querySelectorAll("#sheet-amounts .amt").forEach(function(x){x.classList.remove("selected");});
+        c.classList.add("selected");
+        document.getElementById("sheet-custom-ml").value = "";
+        sheetSelected = parseInt(c.getAttribute("data-ml"),10);
+      });
+    });
+    window._sheetSelected = function(){
+      var custom = document.getElementById("sheet-custom-ml").value;
+      return custom ? parseInt(custom,10) : sheetSelected;
+    };
+  }
+
+  function submitAdd(){
+    var ml = window._sheetSelected ? window._sheetSelected() : 90;
+    if (!ml || ml <= 0) ml = 90;
+    var avgBefore = personalAverage();
+    entries.unshift({id:nextId++, dateLabel:"Dziś, teraz", ml:ml, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:document.getElementById("sheet-notes").value});
+    renderHome(); renderDziennik();
+    closeSheet();
+    if (ml > avgBefore * 1.12) {
+      setTimeout(function(){ document.getElementById("celebrate").classList.add("show"); }, 250);
+    }
+  }
+
+  function openEntrySheet(id){
+    var e = entries.filter(function(x){return x.id===id;})[0];
+    if (!e) return;
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Porcja — '+e.dateLabel+'</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<div class="kv"><span class="k">Ilość</span><span>'+e.ml+' ml</span></div>'+
+      '<div class="kv"><span class="k">Status</span><span>'+(e.status==="fresh"?"świeże / bezpieczne":"zbliża się termin")+'</span></div>'+
+      '<div class="kv"><span class="k">Zamrożone</span><span>'+e.frozen+'</span></div>'+
+      '<div class="kv"><span class="k">Ważność</span><span>'+e.expiry+'</span></div>'+
+      (e.notes ? '<div class="kv"><span class="k">Uwagi</span><span>'+e.notes+'</span></div>' : '')+
+      '<div class="progress-line"><span style="width:'+(e.status==="fresh"?"20":"85")+'%"></span></div>'+
+      '<p class="guide">Pasek pokazuje, ile z 6-miesięcznego okresu przechowywania (-18/-20°C) upłynęło.</p>'
+    );
+  }
+
+  function openBankSheet(i){
+    var b = banks[i % banks.length];
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">'+b.name+'</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<div class="kv"><span class="k">Miasto</span><span>'+b.city+'</span></div>'+
+      '<div class="kv"><span class="k">Adres</span><span>'+b.address+'</span></div>'+
+      '<div class="kv"><span class="k">Godziny</span><span>'+b.hours+'</span></div>'+
+      '<div class="kv"><span class="k">Telefon</span><span>'+b.phone+'</span></div>'+
+      '<div class="field-label">Udogodnienia</div>'+
+      '<p style="font-size:13px;margin:0 0 16px">'+b.features.join(" · ")+'</p>'+
+      '<button class="add-btn">Wyznacz trasę</button>'
+    );
+  }
+
+  function openVerificationSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Proces weryfikacji</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      verificationSteps.map(function(s){
+        return '<div class="vstep'+(s.done?"":" pending")+'"><div class="vcheck">'+(s.done?"✓":"···")+'</div>'+
+          '<div><div style="font-size:13.5px;font-weight:600">'+s.label+'</div>'+
+          '<div style="font-size:11.5px;color:var(--ink-muted);margin-top:2px">'+(s.done?s.date:"oczekuje")+'</div></div></div>';
+      }).join("")
+    );
+  }
+
+  function openNotifications(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Powiadomienia</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      notifications.map(function(n){
+        return '<div class="notif-row"><div class="notif-ic">●</div><div><div class="notif-title">'+n.title+'</div>'+
+          '<div class="notif-body">'+n.body+'</div><div class="notif-time">'+n.time+'</div></div></div>';
+      }).join("")
+    );
+  }
+
+  /* ---------- init & events ---------- */
+  document.querySelectorAll(".amount-row:not(#sheet-amounts) .amt").forEach(function(c){
+    c.addEventListener("click", function(){
+      document.querySelectorAll(".amount-row:not(#sheet-amounts) .amt").forEach(function(x){x.classList.remove("selected");});
+      c.classList.add("selected");
+      selectedMl = parseInt(c.getAttribute("data-ml"),10);
+    });
+  });
+
+  document.getElementById("quick-add-btn").addEventListener("click", function(){
+    var avgBefore = personalAverage();
+    entries.unshift({id:nextId++, dateLabel:"Dziś, teraz", ml:selectedMl, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:""});
+    renderHome(); renderDziennik();
+    if (selectedMl > avgBefore * 1.12) {
+      document.getElementById("celebrate").classList.add("show");
+    } else {
+      var btn = this; btn.textContent = "Dodano ✓";
+      setTimeout(function(){ btn.textContent = "Dodaj mleko"; }, 1400);
+    }
+  });
+
+  document.querySelectorAll(".faq-q").forEach(function(q){
+    q.addEventListener("click", function(){ q.parentElement.classList.toggle("open"); });
+  });
+
+  document.querySelectorAll(".filter").forEach(function(f){
+    f.addEventListener("click", function(){
+      document.querySelectorAll(".filter").forEach(function(x){x.classList.remove("on");});
+      f.classList.add("on"); dzFilter = f.getAttribute("data-f"); renderDziennik();
+    });
+  });
+
+  document.querySelectorAll(".seg-btn").forEach(function(s){
+    s.addEventListener("click", function(){
+      document.querySelectorAll(".seg-btn").forEach(function(x){x.classList.remove("on");});
+      s.classList.add("on");
+      var seg = s.getAttribute("data-seg");
+      document.getElementById("seg-faq").style.display = seg==="faq" ? "" : "none";
+      document.getElementById("seg-leki").style.display = seg==="leki" ? "" : "none";
+      if (seg==="leki") renderMeds(document.getElementById("med-search").value);
+    });
+  });
+  document.getElementById("med-search").addEventListener("input", function(){ renderMeds(this.value); });
+
+  var obStep = 1;
+  var OB_STEPS = 6;
+  function updateOb(){
+    document.querySelectorAll(".ob-step").forEach(function(s){ s.classList.toggle("on", parseInt(s.getAttribute("data-step"),10)===obStep); });
+    document.querySelectorAll(".ob-dots span").forEach(function(d){ d.classList.toggle("on", parseInt(d.getAttribute("data-d"),10)===obStep); });
+  }
+  function obNext(){ obStep = Math.min(OB_STEPS, obStep+1); updateOb(); }
+  function obValidateConsents(){
+    var c1 = document.getElementById("consent-1"), c2 = document.getElementById("consent-2");
+    if (!c1.checked || !c2.checked){
+      [c1.closest(".consent-row"), c2.closest(".consent-row")].forEach(function(row){ row.classList.add("warn"); });
+      return;
+    }
+    obFinish(); // rejestracja zakończona — od razu wchodzimy do aplikacji, bez ekranu pośredniego
+  }
+  function obFinish(){
+    document.getElementById("phone").classList.remove("onboarding");
+    switchTab("home");
+  }
+  document.querySelectorAll(".choice").forEach(function(c){
+    c.addEventListener("click", function(){
+      var g = c.getAttribute("data-g");
+      document.querySelectorAll('.choice[data-g="'+g+'"]').forEach(function(x){x.classList.remove("sel");});
+      c.classList.add("sel");
+    });
+  });
+
+  function switchTab(name){
+    document.querySelectorAll(".navbtn").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-screen")===name); });
+    document.querySelectorAll(".screen").forEach(function(s){ s.classList.remove("active"); });
+    document.getElementById("screen-"+name).classList.add("active");
+  }
+  document.querySelectorAll(".navbtn").forEach(function(btn){
+    btn.addEventListener("click", function(){ switchTab(btn.getAttribute("data-screen")); closeSheet(); });
+  });
+
+  /* ---------- motyw: jasny jest ZAWSZE domyślny przy każdym wejściu do aplikacji ---------- */
+  function applyTheme(name){
+    document.documentElement.setAttribute("data-theme", name);
+    document.querySelectorAll("#theme-seg .seg-btn").forEach(function(b){
+      b.classList.toggle("on", b.getAttribute("data-theme-choice")===name);
+    });
+  }
+  document.querySelectorAll("#theme-seg .seg-btn").forEach(function(b){
+    b.addEventListener("click", function(){ applyTheme(b.getAttribute("data-theme-choice")); });
+  });
+  applyTheme("light"); // nie pamiętamy wyboru między wejściami — zawsze start na jasnym
+
+  renderHome(); renderDziennik(); renderBanks(); renderMeds("");
+
+  /* rejestracja Service Workera — wymagane, żeby na Androidzie/Chrome tryb "standalone" (bez paska adresu) też działał */
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("/sw.js").catch(function(){});
+    });
+  }
+</script>
+</body>
+</html>
