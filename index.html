@@ -314,20 +314,367 @@
 
 </head>
 <body>
+<title>mDawczyni</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="mDawczyni">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ivory:#FDFBF9; --surface:#FFFFFF; --rose:#C79BA0; --rose-deep:#9C6670; --rose-tint:#FAF0EF;
+    --lav:#9891AC; --lav-tint:#F3F1FA; --gold:#AD8748; --gold-tint:#FAF2E1;
+    --sage:#79987D; --sage-tint:#EFF6EE; --ink:#372F35; --ink-muted:#93878D; --line:#EFE6E2;
+    --danger:#B15F5F; --danger-tint:#FBEDED;
+  }
+  /* jasny jest zawsze domyślny — motyw zmienia się WYŁĄCZNIE ręcznie w Ustawieniach (JS ustawia data-theme) */
+  :root[data-theme="dark"]{
+    --ivory:#1B1719; --surface:#242023; --rose:#D6A6AB; --rose-deep:#E7BEC2; --rose-tint:#3A2A2C;
+    --lav:#B7B0CC; --lav-tint:#2C2836; --gold:#D3B573; --gold-tint:#372E1E;
+    --sage:#A4C0A8; --sage-tint:#22301F; --ink:#F0E9EA; --ink-muted:#A6989D; --line:#39302F;
+    --danger:#E29B9B; --danger-tint:#3A2323;
+  }
+  /* nocny — bardzo ciemny i ciepły, bez bieli i błękitu, żeby nie męczyć oczu przy karmieniu w nocy */
+  :root[data-theme="night"]{
+    --ivory:#0F0906; --surface:#180F09; --rose:#C08655; --rose-deep:#D9A06A; --rose-tint:#241609;
+    --lav:#B08F63; --lav-tint:#231A0C; --gold:#C79352; --gold-tint:#241804;
+    --sage:#9B8F5C; --sage-tint:#1C1A0C; --ink:#D9BB94; --ink-muted:#8A7358; --line:#2A1F14;
+    --danger:#C97A5C; --danger-tint:#241209;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;background:var(--ivory);color:var(--ink);
+    font-family:"Karla",system-ui,sans-serif;
+    display:flex;align-items:flex-start;justify-content:center;padding:36px 16px 60px;
+  }
+  .display{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;text-wrap:balance;}
+  .stage{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .stage-label{font-size:12px;color:var(--ink-muted);letter-spacing:.05em;font-variant-caps:small-caps;}
+  .phone{
+    width:375px;max-width:92vw;height:790px;background:var(--surface);
+    border-radius:30px;box-shadow:0 34px 70px -26px rgba(40,20,25,.35), 0 0 0 8px rgba(0,0,0,.035);
+    overflow:hidden;position:relative;display:flex;flex-direction:column;
+  }
+  .statusbar{height:28px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:11.5px;font-weight:600;color:var(--ink);}
+  .screen{flex:1;overflow-y:auto;padding:2px 22px 16px;display:none;}
+  .screen.active{display:block;}
+  .screen::-webkit-scrollbar{display:none;}
+  .icon{width:19px;height:19px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--rose-tint);color:var(--rose-deep);
+    display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-weight:600;font-size:14px;}
+  .iconbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--ink);}
+  .iconbtn .dot{position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--rose-deep);}
+
+  /* delikatne, rozmyte pastelowe plamy w tle ekranu głównego — żeby nie było płasko-białe */
+  #screen-home{
+    background:
+      radial-gradient(240px 240px at 92% -4%, color-mix(in srgb, var(--rose) 38%, transparent), transparent 70%),
+      radial-gradient(220px 220px at 2% 16%, color-mix(in srgb, var(--lav) 30%, transparent), transparent 70%),
+      radial-gradient(260px 260px at 84% 40%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 70%),
+      radial-gradient(210px 210px at 4% 80%, color-mix(in srgb, var(--rose) 26%, transparent), transparent 70%),
+      var(--ivory);
+    background-repeat:no-repeat;
+  }
+
+  .hero{position:relative;border-radius:22px;overflow:hidden;padding:22px 20px 20px;margin:10px 0 18px;
+    background:radial-gradient(120% 90% at 15% 0%, var(--rose-tint), transparent 60%),
+      radial-gradient(100% 100% at 100% 30%, var(--lav-tint), transparent 55%), var(--surface);
+    border:1px solid var(--line);}
+  .hero .eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-muted);}
+  .hero h1{font-size:25px;margin:6px 0 0;line-height:1.15;}
+  .hero .sub{font-size:12.5px;color:var(--ink-muted);margin-top:8px;max-width:26ch;}
+  .impact{display:flex;align-items:center;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
+  .impact .num{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:32px;color:var(--rose-deep);line-height:1;}
+  .impact .txt{font-size:11.5px;color:var(--ink-muted);max-width:22ch;margin-top:4px;line-height:1.4;}
+  .bottle{flex:none;display:flex;flex-direction:column;align-items:center;}
+  .bottle-cap{width:14px;height:5px;background:var(--ink-muted);border-radius:2px 2px 0 0;}
+  .bottle-neck{width:18px;height:12px;background:var(--surface);border:1.4px solid var(--line);border-bottom:none;}
+  .bottle-body{width:40px;height:82px;border:1.4px solid var(--line);border-radius:5px 5px 13px 13px;position:relative;overflow:hidden;background:var(--surface);}
+  .bottle-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--gold),var(--rose-deep));transition:height 1.1s cubic-bezier(.16,.8,.3,1);}
+
+  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-muted);margin:4px 0 12px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .section-title .more{color:var(--lav);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;}
+
+  .amount-row{display:flex;gap:8px;margin-bottom:14px;}
+  .amt{flex:1;padding:12px 0;border-radius:12px;background:var(--surface);color:var(--ink);font-weight:600;font-size:14px;
+    border:1px solid var(--line);cursor:pointer;text-align:center;}
+  .amt.selected{background:var(--rose-deep);border-color:var(--rose-deep);color:#fff;}
+  .add-btn{width:100%;padding:15px;border-radius:13px;border:1px solid var(--rose-deep);background:var(--rose-deep);color:#fff;
+    font-family:"Karla",sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.02em;cursor:pointer;}
+  .add-btn.ghost{background:transparent;color:var(--lav);border-color:var(--lav);}
+  .add-btn.small{padding:11px;font-size:13px;}
+  .add-btn:active{transform:scale(.985);}
+
+  .milestones{display:flex;flex-direction:column;margin-top:6px;}
+  .mrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .mrow:last-child{border-bottom:none;}
+  .mrow .mnum{font-family:"Cormorant Garamond",serif;font-size:19px;color:var(--gold);width:20px;flex:none;}
+  .mrow .mtext{flex:1;font-size:13.5px;}
+  .mrow .mtext .mlabel{color:var(--ink-muted);font-size:11.5px;display:block;margin-top:1px;}
+  .mrow.dim{opacity:.4;}
+
+  h2.screen-title{font-size:22px;margin:14px 0 16px;display:flex;align-items:center;justify-content:space-between;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 16px;margin-bottom:16px;}
+  .list-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+  .list-row:last-child{border-bottom:none;}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .dot.fresh{background:var(--sage);} .dot.soon{background:var(--gold);} .dot.old{background:var(--danger);}
+  .list-main{flex:1;font-size:13.5px;min-width:0;}
+  .list-main .meta{font-size:11.5px;color:var(--ink-muted);margin-top:1px;}
+  .list-amt{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:17px;}
+  .stat-strip{display:flex;justify-content:space-between;text-align:center;padding:16px 4px;}
+  .stat-strip .n{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:22px;}
+  .stat-strip .l{font-size:10.5px;color:var(--ink-muted);letter-spacing:.03em;text-transform:uppercase;margin-top:2px;}
+  .guide{font-size:11.5px;color:var(--ink-muted);margin:-4px 0 16px;line-height:1.5;}
+
+  .filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .filter{padding:7px 13px;border-radius:20px;border:1px solid var(--line);font-size:12px;color:var(--ink-muted);cursor:pointer;}
+  .filter.on{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+
+  .map-box{height:170px;border-radius:16px;position:relative;margin-bottom:16px;overflow:hidden;
+    background:linear-gradient(var(--line) 1px, transparent 1px) 0 0/24px 24px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/24px 24px, var(--lav-tint);}
+  .pin{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--rose-deep);box-shadow:0 0 0 4px var(--rose-tint);}
+  .pin.me{background:var(--lav);box-shadow:0 0 0 5px var(--lav-tint);}
+  .bank-row{padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+  .bank-row:last-child{border-bottom:none;}
+  .bank-row .name{font-size:13.5px;font-weight:600;}
+  .bank-row .meta{font-size:11.5px;color:var(--ink-muted);margin-top:2px;}
+  .source-note{font-size:10.5px;color:var(--ink-muted);margin:-6px 0 16px;font-style:italic;}
+
+  .seg{display:flex;background:var(--ivory);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:16px;}
+  .seg-btn{flex:1;text-align:center;padding:8px 0;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--ink-muted);cursor:pointer;}
+  .seg-btn.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .fact-panel{background:var(--gold-tint);border-radius:14px;padding:16px;margin-bottom:16px;}
+  .fact-panel .display{font-size:15px;line-height:1.4;color:var(--ink);}
+  .fact-panel .src{font-size:10.5px;color:var(--ink-muted);margin-top:8px;}
+  .faq-item{border-bottom:1px solid var(--line);padding:13px 0;}
+  .faq-q{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13.5px;cursor:pointer;gap:10px;}
+  .faq-a{font-size:12.5px;color:var(--ink-muted);margin-top:0;max-height:0;overflow:hidden;transition:max-height .3s ease, margin-top .3s ease;line-height:1.55;}
+  .faq-item.open .faq-a{max-height:220px;margin-top:9px;}
+  .faq-mark{font-family:"Cormorant Garamond",serif;font-size:19px;color:var(--lav);flex:none;}
+
+  .search-input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);
+    font-family:"Karla",sans-serif;font-size:13.5px;color:var(--ink);margin-bottom:14px;}
+  .search-input::placeholder{color:var(--ink-muted);}
+  .med-row{padding:12px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
+  .med-row:last-child{border-bottom:none;}
+  .med-name{font-size:13.5px;font-weight:600;}
+  .pill{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:4px 9px;border-radius:20px;flex:none;}
+  .pill.compatible{background:var(--sage-tint);color:var(--sage);}
+  .pill.caution{background:var(--gold-tint);color:var(--gold);}
+  .pill.avoid{background:var(--danger-tint);color:var(--danger);}
+  .empty-note{font-size:12.5px;color:var(--ink-muted);text-align:center;padding:20px 0;}
+
+  .profile-card{display:flex;align-items:center;gap:13px;padding:15px 4px;}
+  .profile-card .avatar{width:46px;height:46px;font-size:17px;}
+  .profile-card .pname{font-size:14.5px;font-weight:700;}
+  .profile-card .pstatus{font-size:11.5px;color:var(--sage);display:flex;align-items:center;gap:5px;margin-top:2px;}
+  .profile-card .pstatus .sdot{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+  .profile-card .plink{margin-left:auto;font-size:11.5px;color:var(--lav);cursor:pointer;text-align:right;}
+
+  .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);}
+  .settings-row:last-child{border-bottom:none;}
+  .settings-label{font-size:13.5px;}
+  .settings-label .sub{font-size:11.5px;color:var(--ink-muted);margin-top:1px;}
+  .switch{width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;cursor:pointer;flex:none;}
+  .switch.on{background:var(--sage);}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease;}
+  .switch.on::after{left:18px;}
+
+  .navbar{flex:none;display:flex;justify-content:space-around;align-items:center;padding:11px 4px 18px;border-top:1px solid var(--line);background:var(--surface);}
+  .navbtn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted);font-size:9.3px;letter-spacing:.01em;cursor:pointer;padding:4px 4px;font-family:"Karla",sans-serif;}
+  .navbtn.active{color:var(--rose-deep);}
+
+  /* impact ("Twój wpływ") — dedicated section at the bottom of Home */
+  .impact-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 16px 4px;}
+  .impact-top{padding:14px 0 16px;border-bottom:1px solid var(--line);}
+  .impact-stats{border-bottom:1px solid var(--line);}
+  .impact-feed{padding:2px 0 6px;}
+  .ifeed-row{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .ifeed-row:last-child{border-bottom:none;}
+  .ifeed-dot{width:6px;height:6px;border-radius:50%;background:var(--sage);margin-top:6px;flex:none;}
+  .ifeed-text{font-size:12.5px;line-height:1.4;}
+  .ifeed-date{font-size:10.5px;color:var(--ink-muted);margin-top:2px;}
+
+  /* Pielęgniarka AI — chat */
+  #screen-pielegniarka.active{display:flex;flex-direction:column;}
+  .ai-header{flex:none;display:flex;align-items:center;gap:12px;padding:8px 0 10px;}
+  .ai-avatar{width:42px;height:42px;border-radius:50%;background:var(--lav-tint);color:var(--lav);display:flex;align-items:center;justify-content:center;flex:none;}
+  .ai-name{font-size:14.5px;font-weight:700;}
+  .ai-status{font-size:11px;color:var(--sage);display:flex;align-items:center;gap:5px;margin-top:2px;}
+  .ai-status .sdot{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+  .ai-disclaimer{flex:none;font-size:10.5px;color:var(--ink-muted);background:var(--gold-tint);border-radius:12px;padding:10px 13px;margin-bottom:12px;line-height:1.45;}
+  .chat-window{flex:1;overflow-y:auto;padding-bottom:6px;}
+  .chat-window::-webkit-scrollbar{display:none;}
+  .msg-row{display:flex;margin:9px 0;}
+  .msg-row.user{justify-content:flex-end;}
+  .msg-row.bot{justify-content:flex-start;}
+  .msg-col{max-width:80%;display:flex;flex-direction:column;}
+  .msg-row.user .msg-col{align-items:flex-end;}
+  .msg-row.bot .msg-col{align-items:flex-start;}
+  .msg-bubble{padding:10px 14px;border-radius:16px;font-size:12.5px;line-height:1.55;}
+  .msg-row.user .msg-bubble{background:var(--rose-deep);color:#fff;border-bottom-right-radius:4px;}
+  .msg-row.bot .msg-bubble{background:var(--rose-tint);color:var(--ink);border-bottom-left-radius:4px;}
+  .msg-bubble b{font-weight:700;}
+  .msg-time{font-size:9.5px;color:var(--ink-muted);margin-top:4px;padding:0 3px;}
+  .typing-row .msg-bubble{display:flex;gap:4px;padding:13px 16px;}
+  .typing-dot{width:5px;height:5px;border-radius:50%;background:var(--ink-muted);opacity:.35;animation:typingBlink 1.2s infinite;}
+  .typing-dot:nth-child(2){animation-delay:.2s;}
+  .typing-dot:nth-child(3){animation-delay:.4s;}
+  @keyframes typingBlink{0%,80%,100%{opacity:.3;transform:translateY(0);}40%{opacity:1;transform:translateY(-2px);}}
+  .chat-quick{flex:none;display:flex;gap:8px;overflow-x:auto;padding:8px 0;margin:0 -22px;padding-left:22px;padding-right:22px;}
+  .chat-quick::-webkit-scrollbar{display:none;}
+  .qchip{flex:none;padding:8px 13px;border-radius:20px;border:1px solid var(--line);background:var(--surface);font-size:11.5px;color:var(--ink);cursor:pointer;white-space:nowrap;}
+  .qchip:active{background:var(--rose-tint);border-color:var(--rose-deep);}
+  .chat-inputbar{flex:none;display:flex;gap:8px;align-items:center;padding:10px 0 4px;border-top:1px solid var(--line);}
+  .chat-input{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 16px;font-family:"Karla",sans-serif;font-size:13px;background:var(--ivory);color:var(--ink);}
+  .chat-input::placeholder{color:var(--ink-muted);}
+  .chat-send{width:38px;height:38px;border-radius:50%;background:var(--rose-deep);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+  .chat-send:active{transform:scale(.93);}
+
+  /* sheet (bottom modal) */
+  .sheet-overlay{position:absolute;inset:0;background:rgba(20,14,16,.32);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:10;display:flex;align-items:flex-end;}
+  .sheet-overlay.show{opacity:1;pointer-events:auto;}
+  .sheet{background:var(--surface);width:100%;max-height:88%;border-radius:22px 22px 0 0;padding:10px 22px 26px;
+    transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.85,.3,1);overflow-y:auto;}
+  .sheet-overlay.show .sheet{transform:translateY(0);}
+  .sheet-handle{width:36px;height:4px;border-radius:3px;background:var(--line);margin:6px auto 14px;}
+  .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .sheet-head h3{font-size:19px;}
+  .sheet-close{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink-muted);cursor:pointer;font-size:14px;line-height:1;}
+  .field-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-muted);margin:14px 0 7px;font-weight:600;}
+  .field-label:first-of-type{margin-top:2px;}
+  textarea.field, input.field{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:"Karla",sans-serif;font-size:13.5px;color:var(--ink);background:var(--surface);resize:none;}
+  .kv{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--ink-muted);}
+  .progress-line{height:5px;border-radius:3px;background:var(--line);margin:12px 0 4px;overflow:hidden;}
+  .progress-line span{display:block;height:100%;background:var(--sage);}
+  .vstep{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .vstep:last-child{border-bottom:none;}
+  .vcheck{width:22px;height:22px;border-radius:50%;background:var(--sage-tint);color:var(--sage);display:flex;align-items:center;justify-content:center;flex:none;font-size:12px;}
+  .vstep.pending .vcheck{background:var(--ivory);color:var(--ink-muted);}
+  .notif-row{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);}
+  .notif-row:last-child{border-bottom:none;}
+  .notif-ic{width:34px;height:34px;border-radius:50%;background:var(--rose-tint);color:var(--rose-deep);display:flex;align-items:center;justify-content:center;flex:none;}
+  .notif-title{font-size:13px;font-weight:600;}
+  .notif-body{font-size:12px;color:var(--ink-muted);margin-top:2px;line-height:1.4;}
+  .notif-time{font-size:10.5px;color:var(--ink-muted);margin-top:4px;}
+
+  .celebrate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,14,16,.28);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:20;}
+  .celebrate.show{opacity:1;pointer-events:auto;}
+  .celebrate-card{background:var(--surface);border-radius:20px;padding:30px 26px;text-align:center;width:78%;transform:scale(.85);transition:transform .4s cubic-bezier(.2,.9,.3,1.3);position:relative;overflow:hidden;}
+  .celebrate.show .celebrate-card{transform:scale(1);}
+  .ring{position:absolute;border:1px solid var(--gold);border-radius:50%;left:50%;top:38%;width:20px;height:20px;margin:-10px 0 0 -10px;opacity:0;}
+  .celebrate.show .ring{animation:ring 1.6s ease-out infinite;}
+  .ring.r2{animation-delay:.5s !important;} .ring.r3{animation-delay:1s !important;}
+  @keyframes ring{0%{width:20px;height:20px;margin:-10px 0 0 -10px;opacity:.55;}100%{width:180px;height:180px;margin:-90px 0 0 -90px;opacity:0;}}
+  .celebrate-card .mark{font-family:"Cormorant Garamond",serif;font-size:15px;color:var(--gold);position:relative;}
+  .celebrate-card h3{font-size:21px;margin:10px 0 6px;position:relative;}
+  .celebrate-card p{font-size:12.5px;color:var(--ink-muted);margin:0;position:relative;}
+  .celebrate-close{margin-top:16px;font-size:11.5px;color:var(--lav);border:none;background:none;cursor:pointer;position:relative;text-decoration:underline;}
+  @media (prefers-reduced-motion:reduce){ .ring{animation:none !important;opacity:.3;} .celebrate-card,.sheet{transition:none;} }
+
+  /* logowanie */
+  #screen-login.active{display:flex;flex-direction:column;}
+
+  /* onboarding */
+  #screen-onboarding.active{display:flex;flex-direction:column;}
+  .ob-step{display:none;flex-direction:column;flex:1;}
+  .ob-step.on{display:flex;}
+  .phone.onboarding .navbar{display:none;}
+
+  /* pasek offline */
+  .offline-banner{display:none;flex:none;background:var(--danger-tint);color:var(--danger);font-size:11px;font-weight:600;text-align:center;padding:7px 10px;}
+  .offline-banner.show{display:block;}
+
+  /* dostępność — konkretne, bezpieczne powiększenia (bez zoom/transform, żeby nic nie wychodziło poza ekran) */
+  .phone.text-md .hero h1{font-size:27px;}
+  .phone.text-md .hero .sub, .phone.text-md .sub{font-size:13.5px;}
+  .phone.text-md .amt{font-size:15px;}
+  .phone.text-md .add-btn{font-size:15.5px;}
+  .phone.text-md .mrow .mtext{font-size:14.5px;}
+  .phone.text-md .list-main{font-size:14.5px;}
+  .phone.text-md .msg-bubble{font-size:13.5px;}
+  .phone.text-md .settings-label{font-size:14.5px;}
+  .phone.text-md .card, .phone.text-md .ai-disclaimer, .phone.text-md .fact-panel .display{font-size:13.5px;}
+  .phone.text-lg .hero h1{font-size:29px;}
+  .phone.text-lg .hero .sub, .phone.text-lg .sub{font-size:14.5px;}
+  .phone.text-lg .amt{font-size:16px;}
+  .phone.text-lg .add-btn{font-size:16.5px;}
+  .phone.text-lg .mrow .mtext{font-size:15.5px;}
+  .phone.text-lg .list-main{font-size:15.5px;}
+  .phone.text-lg .msg-bubble{font-size:14.5px;}
+  .phone.text-lg .settings-label{font-size:15.5px;}
+  .phone.text-lg .card, .phone.text-lg .ai-disclaimer, .phone.text-lg .fact-panel .display{font-size:14.5px;}
+
+  .phone.high-contrast{--ink-muted:var(--ink);--line:color-mix(in srgb, var(--ink) 45%, transparent);}
+  .ob-art{height:150px;border-radius:20px;margin:18px 0 22px;
+    background:radial-gradient(70% 70% at 30% 30%, var(--rose-tint), transparent 65%),
+      radial-gradient(70% 70% at 75% 70%, var(--lav-tint), transparent 65%), var(--gold-tint);}
+  .ob-dots{display:flex;gap:6px;justify-content:center;margin:14px 0 4px;}
+  .ob-dots span{width:6px;height:6px;border-radius:50%;background:var(--line);}
+  .ob-dots span.on{background:var(--rose-deep);width:16px;border-radius:3px;transition:width .2s;}
+  .ob-q{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .ob-spacer{flex:1;}
+  .ob-skip{text-align:center;font-size:12px;color:var(--lav);margin-top:14px;cursor:pointer;}
+  .ob-hint{font-size:12px;color:var(--ink-muted);line-height:1.5;margin:10px 0 4px;}
+  .choice-row{display:flex;flex-direction:column;gap:8px;margin:10px 0 14px;}
+  .choice{padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:13.5px;cursor:pointer;}
+  .choice.sel{border-color:var(--rose-deep);background:var(--rose-tint);font-weight:600;}
+  .consent-row{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:var(--ink);padding:9px 0;line-height:1.4;cursor:pointer;}
+  .consent-row input{margin-top:2px;width:15px;height:15px;accent-color:var(--rose-deep);flex:none;}
+  .consent-row.warn{color:var(--danger);}
+
+  /* installable full-screen on an actual phone */
+  @media (max-width:480px){
+    body{padding:0;align-items:stretch;}
+    .stage{gap:0;width:100%;}
+    .stage-label{display:none;}
+    .phone{width:100vw;max-width:100vw;height:100vh;height:100dvh;border-radius:0;box-shadow:none;}
+    .statusbar{padding-top:env(safe-area-inset-top);}
+    .navbar{padding-bottom:calc(14px + env(safe-area-inset-bottom));}
+  }
+</style>
+
 <div class="stage">
   <div class="stage-label">mDawczyni</div>
   <div class="phone onboarding" id="phone">
     <div class="statusbar"></div>
+    <div class="offline-banner" id="offline-banner">Brak połączenia z internetem — zmiany zapiszą się po powrocie zasięgu</div>
+
+    <!-- LOGOWANIE -->
+    <div class="screen active" id="screen-login">
+      <div class="ob-art" style="margin-top:18px"></div>
+      <h1 class="display" style="font-size:26px;margin:0">Witaj ponownie</h1>
+      <p class="sub" style="font-size:13px;color:var(--ink-muted);margin-top:10px;line-height:1.5">Zaloguj się, aby dodawać porcje i kontynuować dawstwo.</p>
+      <div class="field-label" style="margin-top:18px">Adres e-mail</div>
+      <input class="field" id="login-email" type="email" placeholder="anna.kowalska@poczta.pl">
+      <div class="field-label">Hasło</div>
+      <input class="field" id="login-password" type="password" placeholder="••••••••">
+      <div id="login-error" style="display:none;color:var(--danger);font-size:11.5px;margin-top:8px"></div>
+      <div style="text-align:right;margin-top:8px">
+        <span style="font-size:12px;color:var(--lav);cursor:pointer" onclick="openForgotPasswordSheet()">Zapomniałam hasła</span>
+      </div>
+      <div class="ob-spacer"></div>
+      <button class="add-btn" onclick="doLogin()">Zaloguj się</button>
+      <div class="ob-skip" onclick="switchTab('onboarding')">Nie masz konta? Zarejestruj się</div>
+    </div>
 
     <!-- ONBOARDING -->
-    <div class="screen active" id="screen-onboarding">
+    <div class="screen" id="screen-onboarding">
       <div class="ob-step on" data-step="1">
         <div class="ob-art"></div>
         <h1 class="display" style="font-size:26px;margin:0">Witaj w mDawczyni</h1>
         <p class="sub" style="font-size:13px;color:var(--ink-muted);margin-top:10px;line-height:1.5">Aplikacja dla dawczyń pokarmu kobiecego — prowadzi Cię przez rejestrację, dziennik donacji i kontakt z bankiem mleka.</p>
         <div class="ob-spacer"></div>
         <button class="add-btn" onclick="obNext()">Rozpocznij rejestrację</button>
-        <div class="ob-skip" onclick="obFinish()">Mam już konto — przejdź do aplikacji</div>
+        <div class="ob-skip" onclick="switchTab('login')">Mam już konto — zaloguj się</div>
       </div>
       <div class="ob-step" data-step="2">
         <div class="field-label" style="margin-top:10px">Dane osobowe</div>
@@ -393,7 +740,8 @@
         </div>
         <p class="ob-hint">Bank mleka organizuje i finansuje te badania po rejestracji — nic nie musisz robić sama.</p>
         <label class="consent-row"><input type="checkbox" id="consent-1" checked><span>Wyrażam zgodę na wykonanie powyższych badań krwi</span></label>
-        <label class="consent-row"><input type="checkbox" id="consent-2" checked><span>Wyrażam zgodę na przetwarzanie danych zdrowotnych (RODO) w celu kwalifikacji</span></label>
+        <label class="consent-row"><input type="checkbox" id="consent-2" checked><span>Wyrażam zgodę na przetwarzanie danych zdrowotnych (RODO) w celu kwalifikacji — <span style="color:var(--lav);text-decoration:underline" onclick="event.preventDefault();event.stopPropagation();openPolitykaSheet();">polityka prywatności</span></span></label>
+        <label class="consent-row"><input type="checkbox" id="consent-3" checked><span>Akceptuję <span style="color:var(--lav);text-decoration:underline" onclick="event.preventDefault();event.stopPropagation();openRegulaminSheet();">regulamin</span> aplikacji mDawczyni</span></label>
         <div class="ob-spacer"></div>
         <button class="add-btn" onclick="obValidateConsents()">Zakończ rejestrację</button>
       </div>
@@ -462,10 +810,12 @@
     <div class="screen" id="screen-dziennik">
       <h2 class="screen-title display">Dziennik</h2>
       <div class="card"><div class="stat-strip" id="dz-stats"></div></div>
+      <input class="search-input" id="dz-search" placeholder="Szukaj po dacie, uwagach lub placówce…">
       <div class="filters">
         <div class="filter on" data-f="all">Wszystkie</div>
         <div class="filter" data-f="fresh">Świeże</div>
         <div class="filter" data-f="soon">Do odbioru</div>
+        <div class="filter" id="dz-sort-btn" style="margin-left:auto">Najnowsze ↓</div>
       </div>
       <div class="card"><div id="dz-list"></div></div>
       <p class="guide">Mleko świeże wytrzymuje do 4 dni w lodówce (4°C). Zamrożone w -18/-20°C zachowuje pełną wartość przez ok. 6 miesięcy — tyle rekomenduje się dla noworodków.</p>
@@ -512,7 +862,7 @@
             <div class="faq-a">Zdrowa karmiąca mama, po wstępnych badaniach serologicznych — bank mleka prowadzi Cię przez cały proces kwalifikacji.</div>
           </div>
         </div>
-        <button class="add-btn ghost">Porozmawiaj z konsultantką</button>
+        <button class="add-btn ghost" onclick="openContactSheet()">Porozmawiaj z konsultantką</button>
       </div>
 
       <div id="seg-leki" style="display:none">
@@ -558,7 +908,9 @@
           <div class="plink" onclick="openVerificationSheet()">proces<br>weryfikacji ›</div>
         </div>
       </div>
-      <div class="section-title">Wygląd</div>
+      <button class="add-btn ghost small" style="margin:2px 0 4px" onclick="openCertificateSheet()">Pobierz zaświadczenie o dawstwie</button>
+
+      <div class="section-title" style="margin-top:22px">Wygląd</div>
       <div class="card">
         <div class="settings-label" style="padding:13px 0 2px">Motyw</div>
         <p class="ob-hint" style="margin-top:0">Nocny jest wygaszony i ciepły — nie męczy oczu przy karmieniu po nocach.</p>
@@ -568,12 +920,47 @@
           <div class="seg-btn" data-theme-choice="night">Nocny</div>
         </div>
       </div>
+
+      <div class="section-title">Dostępność</div>
+      <div class="card">
+        <div class="settings-label" style="padding:13px 0 2px">Rozmiar tekstu</div>
+        <div class="seg" id="textsize-seg" style="margin-bottom:14px">
+          <div class="seg-btn on" data-size-choice="normal">Standardowy</div>
+          <div class="seg-btn" data-size-choice="md">Większy</div>
+          <div class="seg-btn" data-size-choice="lg">Duży</div>
+        </div>
+        <div class="settings-row"><div class="settings-label">Wysoki kontrast<div class="sub">Mocniejsze kontury i tekst</div></div><div class="switch" id="contrast-switch" onclick="this.classList.toggle('on');document.getElementById('phone').classList.toggle('high-contrast', this.classList.contains('on'));"></div></div>
+      </div>
+
       <div class="section-title">Preferencje</div>
       <div class="card">
         <div class="settings-row"><div class="settings-label">Język<div class="sub">Polski</div></div><span>›</span></div>
-        <div class="settings-row"><div class="settings-label">Rozmiar tekstu<div class="sub">Większy, czytelny</div></div><span>›</span></div>
-        <div class="settings-row"><div class="settings-label">Wysoki kontrast</div><div class="switch" onclick="this.classList.toggle('on')"></div></div>
-        <div class="settings-row"><div class="settings-label">Powiadomienia</div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+
+      <div class="section-title">Powiadomienia</div>
+      <div class="card">
+        <div class="settings-row"><div class="settings-label">Włącz powiadomienia<div class="sub">Pozwól aplikacji wysyłać powiadomienia</div></div><div class="switch" id="notif-master" onclick="toggleMasterNotif(this)"></div></div>
+        <div class="settings-row"><div class="settings-label">Przypomnienia o oddaniu mleka</div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-row"><div class="settings-label">Wiadomości od banku mleka</div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-row"><div class="settings-label">Nowości w aplikacji</div><div class="switch" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+
+      <div class="section-title">Wsparcie i informacje</div>
+      <div class="card">
+        <div class="settings-row" style="cursor:pointer" onclick="openContactSheet()"><div class="settings-label">Skontaktuj się z nami</div><span>›</span></div>
+        <div class="settings-row" style="cursor:pointer" onclick="openAboutSheet()"><div class="settings-label">O aplikacji</div><span>›</span></div>
+      </div>
+
+      <div class="section-title">Prawne</div>
+      <div class="card">
+        <div class="settings-row" style="cursor:pointer" onclick="openRegulaminSheet()"><div class="settings-label">Regulamin</div><span>›</span></div>
+        <div class="settings-row" style="cursor:pointer" onclick="openPolitykaSheet()"><div class="settings-label">Polityka prywatności</div><span>›</span></div>
+        <div class="settings-row" style="cursor:pointer" onclick="openExportDataSheet()"><div class="settings-label">Pobierz moje dane</div><span>›</span></div>
+        <div class="settings-row" style="cursor:pointer" onclick="openDeleteAccountSheet()"><div class="settings-label" style="color:var(--danger)">Usuń konto</div><span>›</span></div>
+      </div>
+
+      <div class="card" style="margin-top:6px">
+        <div class="settings-row" style="cursor:pointer;border-bottom:none" onclick="openLogoutConfirm()"><div class="settings-label" style="color:var(--danger);font-weight:600">Wyloguj się</div><span>›</span></div>
       </div>
     </div>
 
@@ -603,6 +990,9 @@
   ];
   var nextId = 6;
   var dzFilter = "all";
+  var dzSearch = "";
+  var dzSortMode = "newest"; // newest | oldest | amount
+  var dzSortLabels = {newest:"Najnowsze ↓", oldest:"Najstarsze ↑", amount:"Ilość ↓"};
   var selectedMl = 90;
 
   var banks = [
@@ -671,13 +1061,23 @@
       '<div><div class="n">'+entries.length+'</div><div class="l">porcje</div></div>'+
       '<div><div class="n">6</div><div class="l">dni z rzędu</div></div>';
     var visible = entries.filter(function(e){ return dzFilter==="all" || e.status===dzFilter; });
+    if (dzSearch){
+      visible = visible.filter(function(e){
+        return e.dateLabel.toLowerCase().indexOf(dzSearch)!==-1 ||
+          (e.notes||"").toLowerCase().indexOf(dzSearch)!==-1 ||
+          (e.dest||"").toLowerCase().indexOf(dzSearch)!==-1;
+      });
+    }
+    visible = visible.slice();
+    if (dzSortMode==="oldest") visible.reverse();
+    else if (dzSortMode==="amount") visible.sort(function(a,b){ return b.ml - a.ml; });
     document.getElementById("dz-list").innerHTML = visible.map(function(e,i){
       return '<div class="list-row" onclick="openEntrySheet('+e.id+')">'+
         '<span class="dot '+e.status+'"></span>'+
         '<div class="list-main">'+e.dateLabel+'<div class="meta">'+
         (e.status==="fresh" ? "zamrożone — "+e.frozen : "ważność: "+e.expiry)+'</div></div>'+
         '<span class="list-amt">'+e.ml+' ml</span></div>';
-    }).join("") || '<div class="empty-note">Brak porcji w tej kategorii.</div>';
+    }).join("") || '<div class="empty-note">Brak wyników — zmień filtr lub wyszukiwanie.</div>';
   }
 
   function renderBanks(){
@@ -839,13 +1239,18 @@
   function submitAdd(){
     var ml = window._sheetSelected ? window._sheetSelected() : 90;
     if (!ml || ml <= 0) ml = 90;
+    var btn = document.querySelector("#sheet .add-btn");
+    var notesVal = document.getElementById("sheet-notes").value;
+    if (btn){ btn.disabled = true; btn.textContent = "Zapisywanie…"; }
     var avgBefore = personalAverage();
-    entries.unshift({id:nextId++, dateLabel:"Dziś, teraz", ml:ml, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:document.getElementById("sheet-notes").value});
-    renderHome(); renderDziennik();
-    closeSheet();
-    if (ml > avgBefore * 1.12) {
-      setTimeout(function(){ document.getElementById("celebrate").classList.add("show"); }, 250);
-    }
+    setTimeout(function(){
+      entries.unshift({id:nextId++, dateLabel:"Dziś, teraz", ml:ml, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:notesVal});
+      renderHome(); renderDziennik();
+      closeSheet();
+      if (ml > avgBefore * 1.12) {
+        setTimeout(function(){ document.getElementById("celebrate").classList.add("show"); }, 250);
+      }
+    }, 500);
   }
 
   function openEntrySheet(id){
@@ -898,6 +1303,126 @@
     );
   }
 
+  /* ---------- prawne / RODO ---------- */
+  function openRegulaminSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Regulamin</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<div style="font-size:12.5px;line-height:1.6;color:var(--ink)">'+
+      '<p><b>1. Postanowienia ogólne.</b> Aplikacja mDawczyni umożliwia dawczyniom pokarmu kobiecego rejestrację, prowadzenie dziennika donacji oraz kontakt z bankami mleka współpracującymi z aplikacją.</p>'+
+      '<p><b>2. Warunki dawstwa.</b> Dawczynią może zostać osoba karmiąca piersią, która przeszła kwalifikację zdrowotną zgodnie z wytycznymi banku mleka, do którego przekazuje pokarm.</p>'+
+      '<p><b>3. Odpowiedzialność.</b> Aplikacja pełni funkcję informacyjną i organizacyjną — ostateczną kwalifikację, badania i odbiór pokarmu prowadzi bank mleka, z którym dawczyni jest powiązana.</p>'+
+      '<p><b>4. Konto użytkowniczki.</b> Dawczyni odpowiada za prawdziwość podanych danych oraz za bezpieczeństwo swojego hasła.</p>'+
+      '<p><b>5. Zmiany regulaminu.</b> O istotnych zmianach regulaminu użytkowniczki zostaną poinformowane w aplikacji z 14-dniowym wyprzedzeniem.</p>'+
+      '</div>'
+    );
+  }
+  function openPolitykaSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Polityka prywatności</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<div style="font-size:12.5px;line-height:1.6;color:var(--ink)">'+
+      '<p><b>Administrator danych.</b> Administratorem danych osobowych zbieranych w aplikacji jest bank mleka, do którego dawczyni jest przypisana.</p>'+
+      '<p><b>Jakie dane przetwarzamy.</b> Dane identyfikacyjne (imię, nazwisko, PESEL), kontaktowe (e-mail, telefon, adres) oraz dane zdrowotne niezbędne do kwalifikacji na dawczynię.</p>'+
+      '<p><b>Cel przetwarzania.</b> Kwalifikacja zdrowotna, organizacja odbioru pokarmu, kontakt w sprawach dawstwa oraz statystyki dotyczące ilości przekazanego pokarmu.</p>'+
+      '<p><b>Twoje prawa.</b> Masz prawo dostępu do swoich danych, ich sprostowania, usunięcia oraz przeniesienia — możesz z nich skorzystać w sekcji „Ustawienia → Prawne".</p>'+
+      '<p><b>Okres przechowywania.</b> Dane przechowywane są przez okres współpracy z bankiem mleka oraz zgodnie z wymogami prawa dotyczącymi dokumentacji medycznej.</p>'+
+      '</div>'
+    );
+  }
+  function openExportDataSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Pobierz moje dane</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<p style="font-size:13px;line-height:1.5;color:var(--ink-muted)">Zgodnie z RODO masz prawo otrzymać kopię wszystkich danych, które przechowujemy na Twój temat.</p>'+
+      '<button class="add-btn" style="margin-top:6px" onclick="confirmExportSent()">Wyślij dane na mój e-mail</button>'
+    );
+  }
+  function confirmExportSent(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Wysłano</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<p style="font-size:13px;line-height:1.5">Przygotowanie eksportu danych może potrwać do 30 dni zgodnie z RODO. Link do pobrania wyślemy na adres e-mail powiązany z Twoim kontem.</p>'
+    );
+  }
+  function openDeleteAccountSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Usuń konto</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<p style="font-size:13px;line-height:1.5;color:var(--danger)">Ta operacja jest nieodwracalna. Usunięte zostaną Twoje dane profilowe oraz dostęp do dziennika donacji. Historia przekazanego pokarmu zostanie zachowana anonimowo w statystykach banku mleka zgodnie z wymogami dokumentacji medycznej.</p>'+
+      '<button class="add-btn" style="margin-top:10px;background:var(--danger);border-color:var(--danger)" onclick="confirmDeleteAccount()">Usuń konto trwale</button>'+
+      '<button class="add-btn ghost small" style="margin-top:10px" onclick="closeSheet()">Anuluj</button>'
+    );
+  }
+  function confirmDeleteAccount(){
+    closeSheet();
+    document.getElementById("phone").classList.add("onboarding");
+    switchTab("login");
+  }
+
+  /* ---------- konto ---------- */
+  function openLogoutConfirm(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Wylogować się?</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<p style="font-size:13px;line-height:1.5;color:var(--ink-muted)">Będziesz musiała zalogować się ponownie, aby dodawać porcje i przeglądać dziennik.</p>'+
+      '<button class="add-btn" style="margin-top:6px;background:var(--danger);border-color:var(--danger)" onclick="doLogout()">Wyloguj się</button>'+
+      '<button class="add-btn ghost small" style="margin-top:10px" onclick="closeSheet()">Anuluj</button>'
+    );
+  }
+
+  /* ---------- wsparcie i informacje ---------- */
+  function openAboutSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">O aplikacji</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<div style="text-align:center;padding:6px 0 18px">'+
+        '<div class="avatar" style="width:56px;height:56px;font-size:20px;margin:0 auto 10px">mD</div>'+
+        '<div style="font-weight:700;font-size:15px">mDawczyni</div>'+
+        '<div style="font-size:11.5px;color:var(--ink-muted);margin-top:2px">Wersja 1.0.0</div>'+
+      '</div>'+
+      '<p style="font-size:12.5px;line-height:1.6;color:var(--ink-muted)">Aplikacja wspierająca dawczynie pokarmu kobiecego — od rejestracji, przez dziennik donacji, po kontakt z bankiem mleka i wsparcie Pielęgniarki AI.</p>'+
+      '<div class="kv"><span class="k">Kontakt</span><span>kontakt@mdawczyni.pl</span></div>'+
+      '<div class="kv"><span class="k">Wsparcie techniczne</span><span>pomoc@mdawczyni.pl</span></div>'+
+      '<button class="add-btn ghost small" style="margin-top:14px" onclick="openRegulaminSheet()">Regulamin</button>'+
+      '<button class="add-btn ghost small" style="margin-top:8px" onclick="openPolitykaSheet()">Polityka prywatności</button>'
+    );
+  }
+  function openContactSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Skontaktuj się</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<p style="font-size:12.5px;line-height:1.6;color:var(--ink-muted)">Konsultantki banku mleka odpowiadają na pytania dotyczące kwalifikacji, badań i odbioru pokarmu.</p>'+
+      '<div class="kv"><span class="k">E-mail</span><span>kontakt@bankmleka.pl</span></div>'+
+      '<div class="kv"><span class="k">Telefon</span><span>22 32 06 320</span></div>'+
+      '<div class="kv"><span class="k">Godziny</span><span>pon–pt 8:00–16:00</span></div>'+
+      '<p style="font-size:11.5px;color:var(--ink-muted);margin-top:10px">W pilnych sprawach medycznych skontaktuj się z lekarzem lub położną.</p>'
+    );
+  }
+  function openCertificateSheet(){
+    var totalMl = entries.reduce(function(a,e){return a+e.ml;},0);
+    var delivered = entries.filter(function(e){return e.delivered;});
+    var today = new Date().toLocaleDateString("pl-PL");
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Zaświadczenie</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<div style="border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;background:var(--rose-tint)">'+
+        '<div class="display" style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--rose-deep);font-weight:600">Zaświadczenie o dawstwie pokarmu</div>'+
+        '<div style="font-size:12.5px;color:var(--ink-muted);margin:10px 0">Niniejszym zaświadcza się, że</div>'+
+        '<div class="display" style="font-weight:600;font-size:19px">Anna Kowalska</div>'+
+        '<div style="font-size:12.5px;color:var(--ink-muted);margin:10px 0 4px">przekazała łącznie</div>'+
+        '<div class="display" style="font-weight:600;font-size:30px;color:var(--rose-deep)">'+fmtLiters(totalMl)+'</div>'+
+        '<div style="font-size:11px;color:var(--ink-muted)">pokarmu kobiecego do '+delivered.length+' placówek medycznych</div>'+
+        '<div style="font-size:10.5px;color:var(--ink-muted);margin-top:14px;border-top:1px solid var(--line);padding-top:10px">Wystawiono: '+today+' · mDawczyni</div>'+
+      '</div>'+
+      '<p style="font-size:11.5px;color:var(--ink-muted);margin-top:14px">Zaświadczenie możesz przedstawić np. pracodawcy jako potwierdzenie udziału w programie dawstwa.</p>'+
+      '<button class="add-btn ghost small" style="margin-top:6px" onclick="closeSheet()">Zamknij</button>'
+    );
+  }
+
+  /* ---------- powiadomienia: zgoda systemowa ---------- */
+  function toggleMasterNotif(el){
+    var turningOn = !el.classList.contains("on");
+    if (turningOn && "Notification" in window && Notification.permission === "default"){
+      Notification.requestPermission().then(function(perm){
+        if (perm === "granted"){ el.classList.add("on"); }
+      }).catch(function(){ el.classList.toggle("on"); });
+    } else {
+      el.classList.toggle("on");
+    }
+  }
+
   /* ---------- init & events ---------- */
   document.querySelectorAll(".amount-row:not(#sheet-amounts) .amt").forEach(function(c){
     c.addEventListener("click", function(){
@@ -908,26 +1433,44 @@
   });
 
   document.getElementById("quick-add-btn").addEventListener("click", function(){
+    var btn = this;
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = "Zapisywanie…";
     var avgBefore = personalAverage();
-    entries.unshift({id:nextId++, dateLabel:"Dziś, teraz", ml:selectedMl, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:""});
-    renderHome(); renderDziennik();
-    if (selectedMl > avgBefore * 1.12) {
-      document.getElementById("celebrate").classList.add("show");
-    } else {
-      var btn = this; btn.textContent = "Dodano ✓";
-      setTimeout(function(){ btn.textContent = "Dodaj mleko"; }, 1400);
-    }
+    var mlToAdd = selectedMl;
+    setTimeout(function(){
+      entries.unshift({id:nextId++, dateLabel:"Dziś, teraz", ml:mlToAdd, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:""});
+      renderHome(); renderDziennik();
+      btn.disabled = false;
+      if (mlToAdd > avgBefore * 1.12) {
+        btn.textContent = "Dodaj mleko";
+        document.getElementById("celebrate").classList.add("show");
+      } else {
+        btn.textContent = "Dodano ✓";
+        setTimeout(function(){ btn.textContent = "Dodaj mleko"; }, 1400);
+      }
+    }, 500);
   });
 
   document.querySelectorAll(".faq-q").forEach(function(q){
     q.addEventListener("click", function(){ q.parentElement.classList.toggle("open"); });
   });
 
-  document.querySelectorAll(".filter").forEach(function(f){
+  document.querySelectorAll(".filter[data-f]").forEach(function(f){
     f.addEventListener("click", function(){
-      document.querySelectorAll(".filter").forEach(function(x){x.classList.remove("on");});
+      document.querySelectorAll(".filter[data-f]").forEach(function(x){x.classList.remove("on");});
       f.classList.add("on"); dzFilter = f.getAttribute("data-f"); renderDziennik();
     });
+  });
+
+  document.getElementById("dz-search").addEventListener("input", function(){
+    dzSearch = this.value.toLowerCase(); renderDziennik();
+  });
+  document.getElementById("dz-sort-btn").addEventListener("click", function(){
+    dzSortMode = dzSortMode==="newest" ? "oldest" : (dzSortMode==="oldest" ? "amount" : "newest");
+    this.textContent = dzSortLabels[dzSortMode];
+    renderDziennik();
   });
 
   document.querySelectorAll(".seg-btn").forEach(function(s){
@@ -950,9 +1493,9 @@
   }
   function obNext(){ obStep = Math.min(OB_STEPS, obStep+1); updateOb(); }
   function obValidateConsents(){
-    var c1 = document.getElementById("consent-1"), c2 = document.getElementById("consent-2");
-    if (!c1.checked || !c2.checked){
-      [c1.closest(".consent-row"), c2.closest(".consent-row")].forEach(function(row){ row.classList.add("warn"); });
+    var c1 = document.getElementById("consent-1"), c2 = document.getElementById("consent-2"), c3 = document.getElementById("consent-3");
+    if (!c1.checked || !c2.checked || !c3.checked){
+      [c1.closest(".consent-row"), c2.closest(".consent-row"), c3.closest(".consent-row")].forEach(function(row){ row.classList.add("warn"); });
       return;
     }
     obFinish(); // rejestracja zakończona — od razu wchodzimy do aplikacji, bez ekranu pośredniego
@@ -960,6 +1503,41 @@
   function obFinish(){
     document.getElementById("phone").classList.remove("onboarding");
     switchTab("home");
+  }
+  function doLogin(){
+    var email = document.getElementById("login-email").value.trim();
+    var pass = document.getElementById("login-password").value;
+    var err = document.getElementById("login-error");
+    if (!email || !pass){
+      err.textContent = "Podaj adres e-mail i hasło.";
+      err.style.display = "block";
+      return;
+    }
+    err.style.display = "none";
+    obFinish();
+  }
+  function doLogout(){
+    document.getElementById("login-email").value = "";
+    document.getElementById("login-password").value = "";
+    document.getElementById("phone").classList.add("onboarding");
+    closeSheet();
+    switchTab("login");
+  }
+  function openForgotPasswordSheet(){
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Zresetuj hasło</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<p class="ob-hint" style="margin-top:0">Podaj adres e-mail powiązany z kontem — wyślemy link do ustawienia nowego hasła.</p>'+
+      '<div class="field-label">Adres e-mail</div>'+
+      '<input class="field" id="reset-email" type="email" placeholder="anna.kowalska@poczta.pl">'+
+      '<button class="add-btn" style="margin-top:18px" onclick="sendResetLink()">Wyślij link resetujący</button>'
+    );
+  }
+  function sendResetLink(){
+    var email = document.getElementById("reset-email").value.trim();
+    openSheet(
+      '<div class="sheet-head"><h3 class="display">Sprawdź skrzynkę</h3><button class="sheet-close" onclick="closeSheet()">✕</button></div>'+
+      '<p style="font-size:13px;line-height:1.5">Jeśli konto istnieje, na adres <b>'+(email||"podany adres")+'</b> wysłaliśmy link do zresetowania hasła. Sprawdź też folder spam.</p>'
+    );
   }
   document.querySelectorAll(".choice").forEach(function(c){
     c.addEventListener("click", function(){
@@ -990,13 +1568,34 @@
   });
   applyTheme("light"); // nie pamiętamy wyboru między wejściami — zawsze start na jasnym
 
+  /* ---------- dostępność: rozmiar tekstu ---------- */
+  function applyTextSize(size){
+    var phone = document.getElementById("phone");
+    phone.classList.remove("text-md","text-lg");
+    if (size==="md") phone.classList.add("text-md");
+    if (size==="lg") phone.classList.add("text-lg");
+    document.querySelectorAll("#textsize-seg .seg-btn").forEach(function(b){
+      b.classList.toggle("on", b.getAttribute("data-size-choice")===size);
+    });
+  }
+  document.querySelectorAll("#textsize-seg .seg-btn").forEach(function(b){
+    b.addEventListener("click", function(){ applyTextSize(b.getAttribute("data-size-choice")); });
+  });
+
+  /* ---------- stan połączenia ---------- */
+  function updateOnlineStatus(){
+    document.getElementById("offline-banner").classList.toggle("show", !navigator.onLine);
+  }
+  window.addEventListener("online", updateOnlineStatus);
+  window.addEventListener("offline", updateOnlineStatus);
+  updateOnlineStatus();
+
   document.getElementById("chat-send").addEventListener("click", function(){ sendChatMessage(); });
   document.getElementById("chat-input").addEventListener("keydown", function(e){
     if (e.key === "Enter"){ e.preventDefault(); sendChatMessage(); }
   });
 
   renderHome(); renderDziennik(); renderBanks(); renderMeds(""); initChat();
-
   /* rejestracja Service Workera — wymagane, żeby na Androidzie/Chrome tryb "standalone" (bez paska adresu) też działał */
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function(){
@@ -1004,5 +1603,6 @@
     });
   }
 </script>
+
 </body>
 </html>
