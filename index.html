@@ -174,9 +174,56 @@
   .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease;}
   .switch.on::after{left:18px;}
 
-  .navbar{flex:none;display:flex;justify-content:space-around;align-items:center;padding:11px 6px 18px;border-top:1px solid var(--line);background:var(--surface);}
-  .navbtn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted);font-size:10px;letter-spacing:.02em;cursor:pointer;padding:4px 8px;font-family:"Karla",sans-serif;}
+  .navbar{flex:none;display:flex;justify-content:space-around;align-items:center;padding:11px 4px 18px;border-top:1px solid var(--line);background:var(--surface);}
+  .navbtn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted);font-size:9.3px;letter-spacing:.01em;cursor:pointer;padding:4px 4px;font-family:"Karla",sans-serif;}
   .navbtn.active{color:var(--rose-deep);}
+
+  /* impact ("Twój wpływ") — dedicated section at the bottom of Home */
+  .impact-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 16px 4px;}
+  .impact-top{padding:14px 0 16px;border-bottom:1px solid var(--line);}
+  .impact-stats{border-bottom:1px solid var(--line);}
+  .impact-feed{padding:2px 0 6px;}
+  .ifeed-row{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .ifeed-row:last-child{border-bottom:none;}
+  .ifeed-dot{width:6px;height:6px;border-radius:50%;background:var(--sage);margin-top:6px;flex:none;}
+  .ifeed-text{font-size:12.5px;line-height:1.4;}
+  .ifeed-date{font-size:10.5px;color:var(--ink-muted);margin-top:2px;}
+
+  /* Pielęgniarka AI — chat */
+  #screen-pielegniarka.active{display:flex;flex-direction:column;}
+  .ai-header{flex:none;display:flex;align-items:center;gap:12px;padding:8px 0 10px;}
+  .ai-avatar{width:42px;height:42px;border-radius:50%;background:var(--lav-tint);color:var(--lav);display:flex;align-items:center;justify-content:center;flex:none;}
+  .ai-name{font-size:14.5px;font-weight:700;}
+  .ai-status{font-size:11px;color:var(--sage);display:flex;align-items:center;gap:5px;margin-top:2px;}
+  .ai-status .sdot{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+  .ai-disclaimer{flex:none;font-size:10.5px;color:var(--ink-muted);background:var(--gold-tint);border-radius:12px;padding:10px 13px;margin-bottom:12px;line-height:1.45;}
+  .chat-window{flex:1;overflow-y:auto;padding-bottom:6px;}
+  .chat-window::-webkit-scrollbar{display:none;}
+  .msg-row{display:flex;margin:9px 0;}
+  .msg-row.user{justify-content:flex-end;}
+  .msg-row.bot{justify-content:flex-start;}
+  .msg-col{max-width:80%;display:flex;flex-direction:column;}
+  .msg-row.user .msg-col{align-items:flex-end;}
+  .msg-row.bot .msg-col{align-items:flex-start;}
+  .msg-bubble{padding:10px 14px;border-radius:16px;font-size:12.5px;line-height:1.55;}
+  .msg-row.user .msg-bubble{background:var(--rose-deep);color:#fff;border-bottom-right-radius:4px;}
+  .msg-row.bot .msg-bubble{background:var(--rose-tint);color:var(--ink);border-bottom-left-radius:4px;}
+  .msg-bubble b{font-weight:700;}
+  .msg-time{font-size:9.5px;color:var(--ink-muted);margin-top:4px;padding:0 3px;}
+  .typing-row .msg-bubble{display:flex;gap:4px;padding:13px 16px;}
+  .typing-dot{width:5px;height:5px;border-radius:50%;background:var(--ink-muted);opacity:.35;animation:typingBlink 1.2s infinite;}
+  .typing-dot:nth-child(2){animation-delay:.2s;}
+  .typing-dot:nth-child(3){animation-delay:.4s;}
+  @keyframes typingBlink{0%,80%,100%{opacity:.3;transform:translateY(0);}40%{opacity:1;transform:translateY(-2px);}}
+  .chat-quick{flex:none;display:flex;gap:8px;overflow-x:auto;padding:8px 0;margin:0 -22px;padding-left:22px;padding-right:22px;}
+  .chat-quick::-webkit-scrollbar{display:none;}
+  .qchip{flex:none;padding:8px 13px;border-radius:20px;border:1px solid var(--line);background:var(--surface);font-size:11.5px;color:var(--ink);cursor:pointer;white-space:nowrap;}
+  .qchip:active{background:var(--rose-tint);border-color:var(--rose-deep);}
+  .chat-inputbar{flex:none;display:flex;gap:8px;align-items:center;padding:10px 0 4px;border-top:1px solid var(--line);}
+  .chat-input{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 16px;font-family:"Karla",sans-serif;font-size:13px;background:var(--ivory);color:var(--ink);}
+  .chat-input::placeholder{color:var(--ink-muted);}
+  .chat-send{width:38px;height:38px;border-radius:50%;background:var(--rose-deep);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+  .chat-send:active{transform:scale(.93);}
 
   /* sheet (bottom modal) */
   .sheet-overlay{position:absolute;inset:0;background:rgba(20,14,16,.32);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:10;display:flex;align-items:flex-end;}
@@ -355,17 +402,6 @@
         <div class="eyebrow">mDawczyni</div>
         <h1 class="display">Dzień dobry,<br>Anno</h1>
         <p class="sub">Twoje mleko trafia dziś do dzieci, które najbardziej go potrzebują.</p>
-        <div class="impact">
-          <div class="bottle">
-            <div class="bottle-cap"></div>
-            <div class="bottle-neck"></div>
-            <div class="bottle-body"><div class="bottle-fill" id="bottle-fill" style="height:0%"></div></div>
-          </div>
-          <div>
-            <div class="num" id="home-impact">1,2 l</div>
-            <div class="txt" id="home-impact-ml">1200 ml oddane łącznie — więcej niż Twoja własna średnia</div>
-          </div>
-        </div>
       </div>
 
       <div class="section-title">Dodaj dzisiejszą porcję</div>
@@ -381,6 +417,23 @@
         <div class="mrow"><span class="mnum">I</span><div class="mtext">Pierwsza donacja<span class="mlabel">14 dni temu</span></div></div>
         <div class="mrow"><span class="mnum">II</span><div class="mtext">Litr mleka przekroczony<span class="mlabel">6 dni temu</span></div></div>
         <div class="mrow dim"><span class="mnum">III</span><div class="mtext">10 donacji z rzędu<span class="mlabel">jeszcze 3 do celu</span></div></div>
+      </div>
+
+      <div class="section-title" style="margin-top:24px">Twój wpływ <span class="more" onclick="switchTab('dziennik')">dziennik ›</span></div>
+      <div class="impact-card">
+        <div class="impact impact-top">
+          <div class="bottle">
+            <div class="bottle-cap"></div>
+            <div class="bottle-neck"></div>
+            <div class="bottle-body"><div class="bottle-fill" id="bottle-fill" style="height:0%"></div></div>
+          </div>
+          <div>
+            <div class="num" id="home-impact">1,2 l</div>
+            <div class="txt" id="home-impact-ml">1200 ml oddane łącznie — więcej niż Twoja własna średnia</div>
+          </div>
+        </div>
+        <div class="stat-strip impact-stats" id="impact-stats"></div>
+        <div class="impact-feed" id="impact-feed"></div>
       </div>
 
       <div class="celebrate" id="celebrate">
@@ -458,6 +511,29 @@
       </div>
     </div>
 
+    <!-- PIELĘGNIARKA AI -->
+    <div class="screen" id="screen-pielegniarka">
+      <h2 class="screen-title display" style="flex:none">Pielęgniarka AI</h2>
+      <div class="ai-header">
+        <div class="ai-avatar">
+          <svg class="icon" viewBox="0 0 24 24" style="width:21px;height:21px"><path d="M9 3v4a3 3 0 0 0 6 0V3"/><path d="M7 5v3a5 5 0 0 0 10 0V5"/><path d="M12 13v4"/><circle cx="12" cy="20" r="1.6"/></svg>
+        </div>
+        <div>
+          <div class="ai-name">Pielęgniarka AI</div>
+          <div class="ai-status"><span class="sdot"></span>Dostępna teraz — wsparcie laktacyjne i dawstwo</div>
+        </div>
+      </div>
+      <p class="ai-disclaimer">Odpowiadam na ogólne pytania o karmienie piersią i dawstwo mleka. Nie zastępuję lekarza ani położnej — w sprawach pilnych lub niepokojących objawach skontaktuj się z nimi bezpośrednio.</p>
+      <div class="chat-window" id="chat-window"></div>
+      <div class="chat-quick" id="chat-quick"></div>
+      <div class="chat-inputbar">
+        <input class="chat-input" id="chat-input" placeholder="Napisz wiadomość…">
+        <button class="chat-send" id="chat-send" aria-label="Wyślij">
+          <svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff"><path d="M4 12h16M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
     <!-- USTAWIENIA -->
     <div class="screen" id="screen-ustawienia">
       <h2 class="screen-title display">Profil</h2>
@@ -495,6 +571,7 @@
       <button class="navbtn" data-screen="dziennik"><svg class="icon" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Dziennik</button>
       <button class="navbtn" data-screen="mapa"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-11.5A7 7 0 0 1 19 9.5C19 14.5 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></svg>Mapa</button>
       <button class="navbtn" data-screen="wiedza"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3.6 10.8c.5.4.9 1 .9 1.7v.5h5.4v-.5c0-.7.4-1.3.9-1.7A6 6 0 0 0 12 3Z"/><path d="M10 19h4M10.5 21h3"/></svg>Wiedza</button>
+      <button class="navbtn" data-screen="pielegniarka"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 8 8H8l-4 3v-4.6A8 8 0 0 1 4 12Z"/><path d="M9 11.5h6M9 14.5h4"/></svg>Pielęgniarka</button>
       <button class="navbtn" data-screen="ustawienia"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.9 2.9l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V20a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.9-2.9l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.9-2.9l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.6V4a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.9 2.9l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.6 1H20a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1Z"/></svg>Ustawienia</button>
     </div>
 
@@ -507,11 +584,11 @@
 <script>
   /* ---------- data ---------- */
   var entries = [
-    {id:5, dateLabel:"Dziś, 14:20", ml:120, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:""},
-    {id:4, dateLabel:"Wczoraj, 21:05", ml:90, status:"fresh", frozen:"wczoraj", expiry:"za ok. 6 mies.", notes:""},
-    {id:3, dateLabel:"12 marca", ml:150, status:"soon", frozen:"12 marca", expiry:"za 3 tygodnie", notes:"lekki katar, bez leków"},
-    {id:2, dateLabel:"2 marca", ml:100, status:"soon", frozen:"2 marca", expiry:"za 5 dni — odbierz wkrótce", notes:""},
-    {id:1, dateLabel:"18 lutego", ml:80, status:"fresh", frozen:"18 lutego", expiry:"za ok. 5 mies.", notes:""}
+    {id:5, dateLabel:"Dziś, 14:20", ml:120, status:"fresh", frozen:"dziś", expiry:"za ok. 6 mies.", notes:"", delivered:false},
+    {id:4, dateLabel:"Wczoraj, 21:05", ml:90, status:"fresh", frozen:"wczoraj", expiry:"za ok. 6 mies.", notes:"", delivered:false},
+    {id:3, dateLabel:"12 marca", ml:150, status:"soon", frozen:"12 marca", expiry:"za 3 tygodnie", notes:"lekki katar, bez leków", delivered:true, dest:"Szpital Ujastek, Kraków"},
+    {id:2, dateLabel:"2 marca", ml:100, status:"soon", frozen:"2 marca", expiry:"za 5 dni — odbierz wkrótce", notes:"", delivered:true, dest:"Szpital Świętej Rodziny, Warszawa"},
+    {id:1, dateLabel:"18 lutego", ml:80, status:"fresh", frozen:"18 lutego", expiry:"za ok. 5 mies.", notes:"", delivered:true, dest:"Uniwersytecki Szpital Kliniczny, Wrocław"}
   ];
   var nextId = 6;
   var dzFilter = "all";
@@ -561,6 +638,19 @@
     document.getElementById("home-impact-ml").textContent = totalMl.toLocaleString("pl-PL") + " ml oddane łącznie — więcej niż Twoja własna średnia";
     var pct = Math.max(4, Math.min(100, Math.round(totalMl / BOTTLE_GOAL_ML * 100)));
     requestAnimationFrame(function(){ document.getElementById("bottle-fill").style.height = pct + "%"; });
+
+    var delivered = entries.filter(function(e){ return e.delivered; });
+    var destSet = {};
+    delivered.forEach(function(e){ if (e.dest) destSet[e.dest] = true; });
+    var destCount = Object.keys(destSet).length;
+    var avgMl = entries.length ? Math.round(totalMl / entries.length) : 0;
+    document.getElementById("impact-stats").innerHTML =
+      '<div><div class="n">'+delivered.length+'</div><div class="l">dostarczone</div></div>'+
+      '<div><div class="n">'+destCount+'</div><div class="l">placówki</div></div>'+
+      '<div><div class="n">'+avgMl+'</div><div class="l">śr. ml</div></div>';
+    document.getElementById("impact-feed").innerHTML = delivered.slice(0,3).map(function(e){
+      return '<div class="ifeed-row"><span class="ifeed-dot"></span><div><div class="ifeed-text">'+e.ml+' ml trafiło do: <b>'+e.dest+'</b></div><div class="ifeed-date">'+e.dateLabel+'</div></div></div>';
+    }).join("") || '<div class="empty-note">Pierwsza porcja jest jeszcze w drodze do banku mleka.</div>';
   }
 
   function renderDziennik(){
@@ -592,6 +682,112 @@
     document.getElementById("med-list").innerHTML = filtered.map(function(m){
       return '<div class="med-row"><div class="med-name">'+m.name+'</div><span class="pill '+m.cat+'">'+labels[m.cat]+'</span></div>';
     }).join("") || '<div class="empty-note">Nie znaleziono leku — zapytaj konsultantkę.</div>';
+  }
+
+  /* ---------- Pielęgniarka AI ---------- */
+  var aiKB = [
+    {kw:["zapalenie piersi","mastitis","zaczerwienienie piersi","goraczka podczas karmienia","bolesna piers","stwardnienie piersi","zaczopowany przewod","boli mnie piers","boli piers","boli mi piers"],
+     a:"To brzmi jak <b>zapalenie piersi (mastitis)</b> albo zaczopowany przewód — częsty problem, zwłaszcza w pierwszych tygodniach. Pomaga częste opróżnianie piersi (karmienie lub odciąganie), ciepły kompres tuż przed karmieniem, chłodny po nim, oraz delikatny masaż w kierunku brodawki. Jeśli w ciągu 24 godzin nie ma poprawy albo pojawi się gorączka powyżej 38°C, koniecznie skontaktuj się z lekarzem — może być potrzebny antybiotyk."},
+    {kw:["bolesne brodawki","pekniete brodawki","bol przy karmieniu","otarcia brodawek","obtarcia","krwawiace brodawki"],
+     a:"Ból i pęknięcia brodawek najczęściej wynikają z nieprawidłowego przystawienia dziecka — warto poprosić o pomoc doradczynię laktacyjną, żeby sprawdziła technikę. Doraźnie pomaga posmarowanie brodawki odrobiną własnego mleka po karmieniu i pozostawienie jej do wyschnięcia na powietrzu, zamiast wilgotnych wkładek."},
+    {kw:["za malo pokarmu","niska laktacja","niewystarczajaca ilosc mleka","dziecko glodne","malo mleka","nie mam mleka","wystarczajaco mleka","czy mam wystarczajaco","produkuje wystarczajaco"],
+     a:"Wrażenie „za mało mleka” jest bardzo częste i rzadko potwierdza się w praktyce — organizm dość szybko dostosowuje produkcję do zapotrzebowania. Najlepszym wskaźnikiem jest liczba mokrych pieluch (min. 5–6 na dobę) i przyrost wagi dziecka, a nie uczucie „pełności” piersi. Częstsze przystawianie i dodatkowe odciąganie po karmieniu zwykle zwiększa produkcję w ciągu kilku dni."},
+    {kw:["jak zwiekszyc laktacje","jak zwiekszyc ilosc mleka","mala produkcja mleka","stymulacja laktacji"],
+     a:"Najskuteczniej działa częstsze i pełniejsze opróżnianie piersi — dodatkowe 10–15 minut odciągania po karmieniu, kontakt „skóra do skóry” z dzieckiem, dobre nawodnienie i odpoczynek, kiedy to możliwe. Efektów warto szukać dopiero po 3–5 dniach regularnego stosowania, zanim ocenisz, czy to działa."},
+    {kw:["nawal pokarmu","nadmiar mleka","przepelnione piersi","obrzek piersi","za duzo mleka"],
+     a:"Nawał pokarmu i uczucie przepełnienia to normalny etap, zwykle między 3. a 5. dobą po porodzie. Pomaga częste karmienie lub odciąganie do ulgi (nie do całkowitego opróżnienia), chłodne okłady między karmieniami i ewentualnie ręczne odciągnięcie niewielkiej ilości przed karmieniem, żeby ułatwić dziecku przystawienie."},
+    {kw:["ile razy karmic","co ile karmic","czestotliwosc karmienia","harmonogram karmienia"],
+     a:"W pierwszych tygodniach to zwykle 8–12 razy na dobę, czyli mniej więcej co 2–3 godziny, także w nocy. Z czasem odstępy się wydłużają — każde dziecko ma trochę inny rytm, więc warto kierować się głównie sygnałami głodu, a nie sztywnym zegarkiem."},
+    {kw:["ile mleka mozna oddac","limit donacji","ile oddac","minimalna ilosc","ile mozna oddawac"],
+     a:"Nie ma jednego sztywnego limitu — liczy się to, żeby oddawać wyłącznie nadwyżkę, po zaspokojeniu potrzeb własnego dziecka. Bank mleka poinformuje Cię o bieżącym zapotrzebowaniu i sugerowanych ilościach już przy rejestracji."},
+    {kw:["jakie badania","badania krwi","hiv","wzw","kila","cmv","jakie testy","wyniki badan waznosc"],
+     a:"Do dawstwa wymagane są badania krwi: <b>HIV, WZW B (HBs), WZW C (HCV), kiła (WR) i CMV</b>. Bank mleka organizuje i finansuje te badania, a appka przypomni Ci, kiedy zbliża się koniec ich ważności — wyniki są aktualne przez 3 miesiące."},
+    {kw:["jak przechowywac mleko","lodowka zamrazarka","ile mozna przechowywac","termin waznosci mleka"],
+     a:"Świeże mleko wytrzymuje do 4 dni w lodówce (4°C). Zamrożone w -18/-20°C zachowuje pełną wartość przez ok. 6 miesięcy — tyle rekomenduje się dla noworodków, do 12 miesięcy w warunkach domowych."},
+    {kw:["transport mleka","jak przewozic","w podrozy","samochodem mleko","w pociagu","w samolocie","dowoz mleka"],
+     a:"Na krótszych trasach (do ok. 2 godzin) wystarczy torba termiczna z wkładem żelowym. Na dłuższe wyjazdy potrzebna jest lodówka turystyczna albo suchy lód (zachowuje temperaturę nawet do 96 godzin). Mleka nigdy nie przewoź w zwykłym termosie."},
+    {kw:["leki a karmienie","czy moge brac leki","antybiotyk karmienie","tabletki","lekarstwa","paracetamol","ibuprofen"],
+     a:"To zależy od konkretnego leku — sprawdź go w zakładce „Wiedza → Sprawdź lek”. Ogólnie paracetamol, ibuprofen i większość antybiotyków (poza terapią paciorkowcem grupy B) są zgodne z karmieniem i dawstwem. W razie wątpliwości zawsze potwierdź z bankiem mleka lub lekarzem."},
+    {kw:["dieta dawczyni","co jesc","alkohol kawa","co pic","suplementy","dieta roslinna"],
+     a:"Zalecana jest zbilansowana dieta z suplementacją kwasów omega-3 (DHA); przy diecie roślinnej dodatkowo witamina B12. Kofeina — maksymalnie 3 kawy lub 5 herbat dziennie. Alkohol i substancje odurzające wykluczają z dawstwa na czas ich stosowania."},
+    {kw:["kto moze zostac dawczynia","warunki dawstwa","kwalifikacja","jak zaczac oddawac mleko","jak zostac dawczynia"],
+     a:"Dawczynią może zostać zdrowa, karmiąca piersią mama (także po stracie dziecka), bez chorób przewlekłych czy zakaźnych, niepaląca, niepijąca alkoholu, wytwarzająca nadwyżkę mleka ponad potrzeby własnego dziecka. Pełną kwalifikację przeprowadza bank mleka na podstawie wywiadu i badań krwi."},
+    {kw:["stres a karmienie","zmeczenie","nie daje rady","przytloczenie","smutek po porodzie","baby blues","placz bez powodu"],
+     a:"To bardzo częste uczucie w pierwszych tygodniach po porodzie — nie jesteś sama. Silny stres może chwilowo obniżyć ilość pokarmu, dlatego ważne jest wsparcie bliskich i odpoczynek, kiedy tylko to możliwe. Jeśli czujesz się długotrwale przytłoczona lub smutna, porozmawiaj o tym z położną albo lekarzem — to też ważna część opieki nad Tobą."},
+    {kw:["kontakt do banku mleka","numer telefonu","jak sie skontaktowac","zadzwonic do banku","adres banku"],
+     a:"Namiary na najbliższy bank mleka znajdziesz w zakładce „Mapa” — masz tam adres, godziny otwarcia i numer telefonu placówki, do której jesteś przypisana."},
+    {kw:["dziekuje","dzieki","super wiesz","to pomoglo","bardzo pomocne"],
+     a:"Cała przyjemność po mojej stronie. Jestem tu, gdy tylko będziesz mnie potrzebować."},
+    {kw:["czesc","dzien dobry","hej","witaj","siema"],
+     a:"Cześć, miło Cię widzieć. W czym mogę Ci dziś pomóc — pytanie o karmienie, o dawstwo, a może coś zupełnie innego?"}
+  ];
+  var aiFallback = "Nie jestem pewna, czy dobrze rozumiem to pytanie — spróbuj sformułować je inaczej, albo wybierz jedną z podpowiedzi poniżej. W sprawach pilnych lub niepokojących objawach zawsze najlepiej skontaktować się bezpośrednio z lekarzem, położną albo bankiem mleka.";
+  var aiQuickStarters = ["Boli mnie pierś","Czy mam wystarczająco mleka?","Jak przechowywać mleko?","Jakie badania muszę zrobić?","Czy mogę brać leki?"];
+
+  function normalizeTxt(s){
+    return (s||"").toLowerCase()
+      .replace(/ą/g,"a").replace(/ć/g,"c").replace(/ę/g,"e").replace(/ł/g,"l")
+      .replace(/ń/g,"n").replace(/ó/g,"o").replace(/ś/g,"s").replace(/ź/g,"z").replace(/ż/g,"z");
+  }
+
+  function getAiReply(text){
+    var norm = normalizeTxt(text);
+    for (var i=0; i<aiKB.length; i++){
+      var hit = aiKB[i].kw.some(function(k){ return norm.indexOf(k) !== -1; });
+      if (hit) return aiKB[i].a;
+    }
+    return aiFallback;
+  }
+
+  function chatTime(){ return new Date().toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}); }
+
+  function appendMsg(html, who){
+    var win = document.getElementById("chat-window");
+    var row = document.createElement("div");
+    row.className = "msg-row " + who;
+    row.innerHTML = \'<div class="msg-col"><div class="msg-bubble">\'+html+\'</div><div class="msg-time">\'+chatTime()+\'</div></div>\';
+    win.appendChild(row);
+    win.scrollTop = win.scrollHeight;
+  }
+
+  function showTyping(){
+    var win = document.getElementById("chat-window");
+    var row = document.createElement("div");
+    row.className = "msg-row bot typing-row";
+    row.id = "typing-row";
+    row.innerHTML = \'<div class="msg-col"><div class="msg-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>\';
+    win.appendChild(row);
+    win.scrollTop = win.scrollHeight;
+  }
+  function hideTyping(){
+    var row = document.getElementById("typing-row");
+    if (row) row.remove();
+  }
+
+  function renderQuickChips(list){
+    document.getElementById("chat-quick").innerHTML = list.map(function(q){
+      return \'<div class="qchip" onclick="sendChatMessage(\\\'\'+q.replace(/\'/g,"\\\\\'")+\'\\\')">\'+q+\'</div>\';
+    }).join("");
+  }
+
+  function sendChatMessage(text){
+    text = (text || document.getElementById("chat-input").value || "").trim();
+    if (!text) return;
+    appendMsg(text, "user");
+    document.getElementById("chat-input").value = "";
+    document.getElementById("chat-quick").innerHTML = "";
+    showTyping();
+    var delay = 650 + Math.random()*700;
+    setTimeout(function(){
+      hideTyping();
+      appendMsg(getAiReply(text), "bot");
+      renderQuickChips(aiQuickStarters);
+    }, delay);
+  }
+
+  function initChat(){
+    appendMsg("Cześć, jestem Twoją Pielęgniarką AI. Pomagam w pytaniach o karmienie piersią i dawstwo mleka — o co chcesz zapytać?", "bot");
+    renderQuickChips(aiQuickStarters);
   }
 
   /* ---------- sheets ---------- */
@@ -783,7 +979,12 @@
   });
   applyTheme("light"); // nie pamiętamy wyboru między wejściami — zawsze start na jasnym
 
-  renderHome(); renderDziennik(); renderBanks(); renderMeds("");
+  document.getElementById("chat-send").addEventListener("click", function(){ sendChatMessage(); });
+  document.getElementById("chat-input").addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ e.preventDefault(); sendChatMessage(); }
+  });
+
+  renderHome(); renderDziennik(); renderBanks(); renderMeds(""); initChat();
 
   /* rejestracja Service Workera — wymagane, żeby na Androidzie/Chrome tryb "standalone" (bez paska adresu) też działał */
   if ("serviceWorker" in navigator) {
